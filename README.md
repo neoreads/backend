@@ -1,6 +1,6 @@
-# NeoBooks后台
+# NeoReads后台
 
-NeoBooks应用的后台程序：
+NeoReads应用的后台程序：
 
 - 编程语言：Golang
 - 数据库：PostgreSQL
