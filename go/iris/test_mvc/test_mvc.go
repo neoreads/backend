@@ -8,7 +8,29 @@ import (
 	"github.com/kataras/iris/middleware/recover"
 )
 
-func main() {
+// This example is equivalent to the
+// https://github.com/kataras/iris/blob/master/_examples/hello-world/main.go
+//
+// It seems that additional code you
+// have to write doesn't worth it
+// but remember that, this example
+// does not make use of iris mvc features like
+// the Model, Persistence or the View engine neither the Session,
+// it's very simple for learning purposes,
+// probably you'll never use such
+// as simple controller anywhere in your app.
+//
+// The cost we have on this example for using MVC
+// on the "/hello" path which serves JSON
+// is ~2MB per 20MB throughput on my personal laptop,
+// it's tolerated for the majority of the applications
+// but you can choose
+// what suits you best with Iris, low-level handlers: performance
+// or high-level controllers: easier to maintain and smaller codebase on large applications.
+
+// Of course you can put all these to main func, it's just a separate function
+// for the main_test.go.
+func newApp() *iris.Application {
 	app := iris.New()
 	// Optionally, add two built'n handlers
 	// that can recover from any http-relative panics
@@ -19,19 +41,27 @@ func main() {
 	app.RegisterView(iris.HTML("./", ".html"))
 
 	// Serve a controller based on the root Router, "/".
-	mvc.New(app.Party("/book")).Handle(new(BookController))
-
-	// TODO: read port from config
-	app.Run(iris.Addr(":8090"))
+	mvc.New(app).Handle(new(ExampleController))
+	return app
 }
 
-// BookController serves the "/", "/ping" and "/hello".
-type BookController struct{}
+func main() {
+	app := newApp()
+
+	// http://localhost:8080
+	// http://localhost:8080/ping
+	// http://localhost:8080/hello
+	// http://localhost:8080/custom_path
+	app.Run(iris.Addr(":8089"))
+}
+
+// ExampleController serves the "/", "/ping" and "/hello".
+type ExampleController struct{}
 
 // Get serves
 // Method:   GET
 // Resource: http://localhost:8080
-func (c *BookController) Get() mvc.Result {
+func (c *ExampleController) Get() mvc.Result {
 	return mvc.Response{
 		ContentType: "text/html",
 		Text:        "<h1>Welcome</h1>",
@@ -41,22 +71,18 @@ func (c *BookController) Get() mvc.Result {
 // GetPing serves
 // Method:   GET
 // Resource: http://localhost:8080/ping
-func (c *BookController) GetPing() string {
+func (c *ExampleController) GetPing() string {
 	return "pong"
-}
-
-func (c *BookController) GetPong() string {
-	return "ping"
 }
 
 // GetHello serves
 // Method:   GET
 // Resource: http://localhost:8080/hello
-func (c *BookController) GetHello() interface{} {
+func (c *ExampleController) GetHello() interface{} {
 	return map[string]string{"message": "Hello Iris!"}
 }
 
-func (c *BookController) GetNow() interface{} {
+func (c *ExampleController) GetNow() interface{} {
 	return map[string]string{"message": "Now!"}
 }
 
@@ -66,7 +92,7 @@ func (c *BookController) GetNow() interface{} {
 // Here you can register custom method's handlers
 // use the standard router with `ca.Router` to do something that you can do without mvc as well,
 // and add dependencies that will be binded to a controller's fields or method function's input arguments.
-func (c *BookController) BeforeActivation(b mvc.BeforeActivation) {
+func (c *ExampleController) BeforeActivation(b mvc.BeforeActivation) {
 	anyMiddlewareHere := func(ctx iris.Context) {
 		ctx.Application().Logger().Warnf("Inside /custom_path")
 		ctx.Next()
@@ -74,14 +100,14 @@ func (c *BookController) BeforeActivation(b mvc.BeforeActivation) {
 	b.Handle("GET", "/custom_path", "CustomHandlerWithoutFollowingTheNamingGuide", anyMiddlewareHere)
 
 	// or even add a global middleware based on this controller's router,
-	// which in this Book is the root "/":
+	// which in this example is the root "/":
 	// b.Router().Use(myMiddleware)
 }
 
 // CustomHandlerWithoutFollowingTheNamingGuide serves
 // Method:   GET
 // Resource: http://localhost:8080/custom_path
-func (c *BookController) CustomHandlerWithoutFollowingTheNamingGuide() string {
+func (c *ExampleController) CustomHandlerWithoutFollowingTheNamingGuide() string {
 	return "hello from the custom handler without following the naming guide"
 }
 
@@ -92,7 +118,7 @@ func (c *BookController) CustomHandlerWithoutFollowingTheNamingGuide() string {
 // bind path parameters in the function's input arguments, and it also
 // helps to have "Get" and "GetBy" in the same controller.
 //
-func (c *BookController) GetUserBy(username string) mvc.Result {
+func (c *ExampleController) GetUserBy(username string) mvc.Result {
 	return mvc.View{
 		Name: "user/username.html",
 		Data: username,
@@ -102,21 +128,21 @@ func (c *BookController) GetUserBy(username string) mvc.Result {
 /* Can use more than one, the factory will make sure
 that the correct http methods are being registered for each route
 for this controller, uncomment these if you want:
-func (c *BookController) Post() {}
-func (c *BookController) Put() {}
-func (c *BookController) Delete() {}
-func (c *BookController) Connect() {}
-func (c *BookController) Head() {}
-func (c *BookController) Patch() {}
-func (c *BookController) Options() {}
-func (c *BookController) Trace() {}
+func (c *ExampleController) Post() {}
+func (c *ExampleController) Put() {}
+func (c *ExampleController) Delete() {}
+func (c *ExampleController) Connect() {}
+func (c *ExampleController) Head() {}
+func (c *ExampleController) Patch() {}
+func (c *ExampleController) Options() {}
+func (c *ExampleController) Trace() {}
 */
 
 /*
-func (c *BookController) All() {}
+func (c *ExampleController) All() {}
 //        OR
-func (c *BookController) Any() {}
-func (c *BookController) BeforeActivation(b mvc.BeforeActivation) {
+func (c *ExampleController) Any() {}
+func (c *ExampleController) BeforeActivation(b mvc.BeforeActivation) {
 	// 1 -> the HTTP Method
 	// 2 -> the route's path
 	// 3 -> this controller's method name that should be handler for that route.
@@ -124,5 +150,5 @@ func (c *BookController) BeforeActivation(b mvc.BeforeActivation) {
 }
 // After activation, all dependencies are set-ed - so read only access on them
 // but still possible to add custom controller or simple standard handlers.
-func (c *BookController) AfterActivation(a mvc.AfterActivation) {}
+func (c *ExampleController) AfterActivation(a mvc.AfterActivation) {}
 */

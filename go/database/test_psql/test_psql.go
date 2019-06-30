@@ -8,6 +8,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type student struct {
+	id   int64
+	name string
+}
+
 func main() {
 	connStr := "user=postgres dbname=hello sslmode=disable password=123456"
 	db, err := sql.Open("postgres", connStr)
@@ -21,12 +26,11 @@ func main() {
 	}
 
 	for rows.Next() {
-		var id int64
-		var name string
-		err = rows.Scan(&id, &name)
+		var s student
+		err = rows.Scan(&s.id, &s.name)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("%v : %v\n", id, name)
+		fmt.Printf("[%v]:%v\n", s.id, s.name)
 	}
 }

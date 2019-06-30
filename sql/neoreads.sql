@@ -6,9 +6,9 @@ create table book (
     authors varchar(100)
 );
 
--- table for author info
-drop table if exists author;
-create table author (
+-- table for person info
+drop table if exists person;
+create table person (
     id char(10),
     fname varchar(100), -- first name
     mname varchar(100), -- middle name
