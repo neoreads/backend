@@ -16,10 +16,6 @@ func NewBookController(r *repositories.BookRepo) *BookController {
 	return &BookController{Repo: r}
 }
 
-func (ctrl *BookController) GetPing(c *gin.Context) {
-	c.String(http.StatusOK, "pong")
-}
-
 func (ctrl *BookController) GetBook(c *gin.Context) {
 	bookid := c.Param("bookid")
 	book, found := ctrl.Repo.GetBook(bookid)
@@ -30,7 +26,7 @@ func (ctrl *BookController) GetBook(c *gin.Context) {
 	}
 }
 
-func (ctrl *BookController) GetContent(c *gin.Context) {
+func (ctrl *BookController) GetBookChapter(c *gin.Context) {
 	bookid := c.Param("bookid")
 	chapid := c.Param("chapid")
 	content, found := ctrl.Repo.GetContent(bookid, chapid)
