@@ -1,4 +1,4 @@
-package datamodels
+package models
 
 // Book is datamodel for a book info
 type Book struct {

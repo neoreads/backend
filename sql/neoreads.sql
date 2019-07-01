@@ -22,11 +22,10 @@ create table book_author (
     author_id char(10)
 );
 
+drop table if exists chapter;
 -- table for chapter info
 create table chapter (
-    id char(10),
-    book_id char(10),
+    id char(8),
     title varchar(200),
-    file varchar(200), -- location of the chapter's file
-    loc bigint -- location of the chapter, if it is part of a file
+    path varchar(200) -- location of the chapter's file
 );
