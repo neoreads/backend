@@ -10,27 +10,40 @@ import (
 
 // BookRepo book related data repository
 type BookRepo struct {
-	db *sqlx.DB
+	db      *sqlx.DB
+	rootDir string
 }
 
 // NewBookRepo creator for BookRepo
-func NewBookRepo(db *sqlx.DB) *BookRepo {
-	return &BookRepo{db: db}
+func NewBookRepo(db *sqlx.DB, root string) *BookRepo {
+	return &BookRepo{db: db, rootDir: root}
 }
 
 // GetBook get book info by bookid
 func (r *BookRepo) GetBook(id string) (book models.Book, found bool) {
-	err := r.db.Get(&book, "SELECT * from book where id=$1", id)
+	err := r.db.Get(&book, "SELECT * from books where id=$1", id)
 	if err != nil {
 		return models.Book{}, false
 	}
 	return book, true
 }
 
-func readText(path string) string {
-	file := "D:/neoreads/data/000/" + path
-	log.Println(file)
-	text, err := ioutil.ReadFile(file)
+// GetTOC get table of contents
+func (r *BookRepo) GetTOC(id string) (toc []models.Chapter) {
+	err := r.db.Select(&toc, "SELECT * from chapters where bookid=$1 order by \"order\" asc", id)
+	if err != nil {
+		log.Printf("err:%s\n", err)
+	}
+	return toc
+}
+
+func (r *BookRepo) readText(chap *models.Chapter) string {
+	bookid := chap.BookID
+	chapid := chap.ID
+	dir := bookid[:4]
+	path := r.rootDir + dir + "/" + bookid + "/" + chapid + ".txt"
+	log.Printf("reading chapter from %s\n", path)
+	text, err := ioutil.ReadFile(path)
 	if err == nil {
 		return string(text)
 	}
@@ -40,20 +53,18 @@ func readText(path string) string {
 // GetContent get the content of a chapter by bookid and chapid
 // Note: chapid in database is actually bookid+chapid
 func (r *BookRepo) GetContent(bookid string, chapid string) (content models.Content, found bool) {
-	log.Println("Getting content")
-	id := bookid + chapid
-	chap := models.Chapter{}
-	err := r.db.Get(&chap, "SELECT * from chapter where id=$1", id)
+	log.Printf("Getting content:%s:%s", bookid, chapid)
+	chap := &models.Chapter{}
+	log.Printf("SELECT * from chapters where bookid=%s and id=%s\n", bookid, chapid)
+	err := r.db.Get(chap, "SELECT * from chapters where bookid=$1 and id=$2", bookid, chapid)
 	log.Println(chap)
 	if err == nil {
-		path := chap.Path
-		log.Println(path)
-		text := readText(path)
+		text := r.readText(chap)
 		content.Content = text
 		content.ID = chap.ID
 		content.Title = chap.Title
-		log.Print(err)
 		return content, true
 	}
+	log.Printf("erro:%s", err)
 	return content, false
 }

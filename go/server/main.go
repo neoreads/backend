@@ -27,35 +27,18 @@ func initDB(dbstring string) *sqlx.DB {
 	return db
 }
 
-func setupRouter() *gin.Engine {
-	// Disable Console Color
-	// gin.DisableConsoleColor()
-	r := gin.Default()
-	v1 := r.Group("/api/v1")
-
-	// /api/v1/book
-	book := v1.Group("/book")
-	{
-		repo := repositories.NewBookRepo(db)
-		ctrl := controllers.NewBookController(repo)
-
-		book.GET("/:bookid", ctrl.GetBook)
-		book.GET("/:bookid/:chapid", ctrl.GetBookChapter)
-	}
-
-	return r
-}
-
 // Config config object
 type Config struct {
 	port     string
 	dbstring string
+	datadir  string
 }
 
 func initConfig() *Config {
 	// read config
 	viper.SetDefault("port", ":8080")
 	viper.SetDefault("dbstring", "user=postgres dbname=neoreads sslmode=disable password=123456")
+	viper.SetDefault("datadir", "D:/neoreads/data/")
 
 	viper.SetConfigType("toml")
 	viper.SetConfigName("neoreads-server")
@@ -70,6 +53,7 @@ func initConfig() *Config {
 	config := &Config{}
 	config.port = viper.GetString("port")
 	config.dbstring = viper.GetString("dbstring")
+	config.datadir = viper.GetString("datadir")
 
 	// Pretty print loaded configs
 	js, err := json.MarshalIndent(viper.AllSettings(), "", "  ")
@@ -81,6 +65,26 @@ func initConfig() *Config {
 	return config
 }
 
+func initRouter(config *Config) *gin.Engine {
+	// Disable Console Color
+	// gin.DisableConsoleColor()
+	r := gin.Default()
+	v1 := r.Group("/api/v1")
+
+	// /api/v1/book
+	book := v1.Group("/book")
+	{
+		repo := repositories.NewBookRepo(db, config.datadir)
+		ctrl := controllers.NewBookController(repo)
+
+		book.GET("/:bookid", ctrl.GetBook)
+		book.GET("/:bookid/toc", ctrl.GetTOC)
+		book.GET("/:bookid/chapter/:chapid", ctrl.GetBookChapter)
+	}
+
+	return r
+}
+
 func main() {
 
 	// init config
@@ -89,8 +93,8 @@ func main() {
 	// init database
 	db = initDB(config.dbstring)
 
-	// setup router
-	r := setupRouter()
+	// init router
+	r := initRouter(config)
 
 	// listen and serve
 	r.Run(config.port)

@@ -7,7 +7,8 @@ type Content struct {
 }
 
 type Chapter struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
-	Path  string `json:"path"`
+	ID     string `json:"id"`
+	Order  int    `json:"order"`
+	BookID string `json:"bookid"`
+	Title  string `json:"title"`
 }
