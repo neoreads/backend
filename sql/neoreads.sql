@@ -29,7 +29,8 @@ create table chapters (
     id char(3),
     "order" int,
     bookid char(8),
-    title varchar(200)
+    title varchar(200),
+    CONSTRAINT book_chapter_key PRIMARY KEY (id, bookid)
 );
 
 -- test data ---
