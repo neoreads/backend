@@ -29,9 +29,9 @@ func initDB(dbstring string) *sqlx.DB {
 
 // Config config object
 type Config struct {
-	port     string
-	dbstring string
-	datadir  string
+	Port     string `json:"port"`
+	DBString string `json:"dbstring"`
+	DataDir  string `json:"datadir"`
 }
 
 func initConfig() *Config {
@@ -51,12 +51,12 @@ func initConfig() *Config {
 	}
 
 	config := &Config{}
-	config.port = viper.GetString("port")
-	config.dbstring = viper.GetString("dbstring")
-	config.datadir = viper.GetString("datadir")
+	config.Port = viper.GetString("port")
+	config.DBString = viper.GetString("dbstring")
+	config.DataDir = viper.GetString("datadir")
 
 	// Pretty print loaded configs
-	js, err := json.MarshalIndent(viper.AllSettings(), "", "  ")
+	js, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		panic(fmt.Errorf("Bad Config:%s", viper.AllSettings()))
 	}
@@ -74,7 +74,7 @@ func initRouter(config *Config) *gin.Engine {
 	// /api/v1/book
 	book := v1.Group("/book")
 	{
-		repo := repositories.NewBookRepo(db, config.datadir)
+		repo := repositories.NewBookRepo(db, config.DataDir)
 		ctrl := controllers.NewBookController(repo)
 
 		book.GET("/:bookid", ctrl.GetBook)
@@ -91,11 +91,11 @@ func main() {
 	config := initConfig()
 
 	// init database
-	db = initDB(config.dbstring)
+	db = initDB(config.DBString)
 
 	// init router
 	r := initRouter(config)
 
 	// listen and serve
-	r.Run(config.port)
+	r.Run(config.Port)
 }

@@ -29,6 +29,8 @@ func (ctrl *BookController) GetBook(c *gin.Context) {
 func (ctrl *BookController) GetTOC(c *gin.Context) {
 	bookid := c.Param("bookid")
 	toc := ctrl.Repo.GetTOC(bookid)
+
+	
 	c.JSON(http.StatusOK, toc)
 }
 
