@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
+	pmodels "github.com/neoreads-backend/go/prepare/models"
 	"github.com/neoreads-backend/go/server/models"
 )
 
@@ -78,4 +79,15 @@ func (r *BookRepo) GetContent(bookid string, chapid string) (content models.Cont
 	}
 	log.Printf("erro:%s", err)
 	return content, false
+}
+
+func (r *BookRepo) AddBook(toc *pmodels.Toc) {
+	r.db.Exec("INSERT INTO books VALUES($1, $2)", toc.BookID, toc.Title)
+	for od, item := range toc.Items {
+		_, err := r.db.Exec("INSERT INTO chapters VALUES($1, $2, $3, $4)",
+			item.ChapID, od+1, toc.BookID, item.Title)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }

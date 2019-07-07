@@ -6,7 +6,8 @@ drop table if exists books;
 create table books (
     id char(8),
     title varchar(200),
-    authors varchar(100)
+    authors varchar(100),
+    CONSTRAINT books_pk PRIMARY KEY (id)
 );
 
 -- table for person info
@@ -26,7 +27,7 @@ create table book_author (
 );
 
 create table chapters (
-    id char(3),
+    id char(4),
     "order" int,
     bookid char(8),
     title varchar(200),
@@ -34,9 +35,10 @@ create table chapters (
 );
 
 -- test data ---
-insert into books VALUES ('00000001', '史记', '司马迁');
-insert into people VALUES ('00000001', '司马', '迁', '司马迁');
-insert into book_author VALUES ('00000001', '00000001');
-insert into chapters VALUES ('001', 1, '00000001', '五帝本纪第一');
-insert into chapters VALUES ('002', 2, '00000001', '夏本纪第二');
-insert into chapters VALUES ('003', 3, '00000001', '殷本纪第三');
+
+-- insert into books VALUES ('00000001', '史记', '司马迁');
+-- insert into people VALUES ('00000001', '司马', '迁', '司马迁');
+-- insert into book_author VALUES ('00000001', '00000001');
+-- insert into chapters VALUES ('0001', 1, '00000001', '五帝本纪第一');
+-- insert into chapters VALUES ('0002', 2, '00000001', '夏本纪第二');
+-- insert into chapters VALUES ('0003', 3, '00000001', '殷本纪第三');

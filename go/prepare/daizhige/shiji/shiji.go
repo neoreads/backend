@@ -96,6 +96,21 @@ func createBookDir(dir string, bookid string) string {
 	return bookDir
 }
 
+func testAddBook() {
+	dir := "D:/neoreads/data/"
+	db, err := sqlx.Connect("postgres", "user=postgres dbname=neoreads sslmode=disable password=123456")
+	if err != nil {
+		log.Fatalf("init db failed: %s\n", err)
+	}
+	bookRepo = repositories.NewBookRepo(db, dir+"books/")
+
+	toc := models.NewToc("ADXZIQNZ", "测试书籍")
+	toc.AddChapter("001", "Chapter 1")
+	toc.AddChapter("002", "Chapter 2")
+	toc.AddChapter("003", "Chapter 3")
+
+	bookRepo.AddBook(toc)
+}
 func processShiji() {
 	util.InitSeed()
 	dir := "D:/neoreads/data/"
@@ -109,7 +124,8 @@ func processShiji() {
 
 	bookDir := createBookDir(dir, bookid)
 	bookFile := "史记.txt"
-	processBook(dir, bookFile, bookDir, bookid)
+	toc := processBook(dir, bookFile, bookDir, bookid)
+	bookRepo.AddBook(toc)
 
 	// for each book convert it into .md with ids
 	for _, f := range util.FindFile(bookDir, "*.txt") {
@@ -118,10 +134,9 @@ func processShiji() {
 		processChapter(dir, txt, name+".md")
 	}
 
-	//processChapter("D:/neoreads/data/test/", "test1.txt", "test1_out.md")
 }
 
-func processBook(dir string, fname string, outdir string, bookid string) {
+func processBook(dir string, fname string, outdir string, bookid string) *models.Toc {
 	chapGen := util.NewN64Generator(4)
 	file, err := os.Open(filepath.Join(dir, "stage", fname))
 	if err != nil {
@@ -190,6 +205,8 @@ func processBook(dir string, fname string, outdir string, bookid string) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+
+	return toc
 }
 
 func processChapter(dir string, infile string, outfile string) {
@@ -248,4 +265,5 @@ func main() {
 	//testSplit()
 	//testGenN64()
 	processShiji()
+	//testAddBook()
 }
