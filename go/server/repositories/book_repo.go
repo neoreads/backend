@@ -28,6 +28,17 @@ func (r *BookRepo) GetBook(id string) (book models.Book, found bool) {
 	return book, true
 }
 
+// ContainsBookID check if bookid is already contained in the table
+func (r *BookRepo) ContainsBookID(bookid string) bool {
+	count := 0
+	err := r.db.Get(&count, "SELECT count(id) from books where id=$1", bookid)
+	if err != nil {
+		log.Fatalf("[BookRepo] error checking book id: %s", err)
+		return true
+	}
+	return count > 0
+}
+
 // GetTOC get table of contents
 func (r *BookRepo) GetTOC(id string) (toc []models.Chapter) {
 	err := r.db.Select(&toc, "SELECT * from chapters where bookid=$1 order by \"order\" asc", id)
@@ -41,7 +52,7 @@ func (r *BookRepo) readText(chap *models.Chapter) string {
 	bookid := chap.BookID
 	chapid := chap.ID
 	dir := bookid[:4]
-	path := r.rootDir + dir + "/" + bookid + "/" + chapid + ".txt"
+	path := r.rootDir + "books/" + dir + "/" + bookid + "/" + chapid + ".txt"
 	log.Printf("reading chapter from %s\n", path)
 	text, err := ioutil.ReadFile(path)
 	if err == nil {

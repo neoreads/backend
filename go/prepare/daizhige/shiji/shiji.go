@@ -5,9 +5,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+
+	"github.com/neoreads-backend/go/server/repositories"
+
+	"github.com/neoreads-backend/go/prepare/models"
 
 	"github.com/neoreads-backend/go/util"
 )
@@ -65,48 +72,58 @@ func testSplit() {
 	}
 }
 
+var db *sqlx.DB
+var bookRepo *repositories.BookRepo
+
+func genBookID() string {
+	bookGen := util.NewN64Generator(8)
+	bookid := bookGen.Next()
+	genCount := 0
+	for bookRepo.ContainsBookID(bookid) {
+		bookid := bookGen.Next()
+		genCount++
+		if genCount > 100 {
+			log.Fatalf("Error generating bookid:%s", bookid)
+			break
+		}
+	}
+	return bookid
+}
+
+func createBookDir(dir string, bookid string) string {
+	bookDir := filepath.Join(dir, "books", bookid[0:4], bookid)
+	os.MkdirAll(bookDir, os.ModePerm)
+	return bookDir
+}
+
 func processShiji() {
 	util.InitSeed()
-	dir := "D:/neoreads/data/test/"
-	processBook(dir, "史记.txt")
-	//processChapter(dir, "test1.txt", "test1_out.txt")
-}
-
-type Chapter struct {
-	Title    string
-	fileName string
-	lines    []string
-}
-
-func NewChapter(file string) *Chapter {
-	return &Chapter{fileName: file}
-}
-
-func (c *Chapter) Add(line string) {
-	c.lines = append(c.lines, line)
-}
-
-func (c *Chapter) Save() {
-	out, err := os.Create(c.fileName)
+	dir := "D:/neoreads/data/"
+	db, err := sqlx.Connect("postgres", "user=postgres dbname=neoreads sslmode=disable password=123456")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("init db failed: %s\n", err)
 	}
-	defer out.Close()
+	bookRepo = repositories.NewBookRepo(db, dir+"books/")
+	bookid := genBookID()
+	log.Printf("new bookid: %s\n", bookid)
 
-	w := bufio.NewWriter(out)
-	w.WriteString(c.Title)
-	w.WriteString("\n")
-	for _, line := range c.lines {
-		w.WriteString(line)
-		w.WriteString("\n")
+	bookDir := createBookDir(dir, bookid)
+	bookFile := "史记.txt"
+	processBook(dir, bookFile, bookDir, bookid)
+
+	// for each book convert it into .md with ids
+	for _, f := range util.FindFile(bookDir, "*.txt") {
+		dir, txt := filepath.Split(f)
+		name := util.StripExt(txt)
+		processChapter(dir, txt, name+".md")
 	}
-	w.Flush()
+
+	//processChapter("D:/neoreads/data/test/", "test1.txt", "test1_out.md")
 }
 
-func processBook(dir string, fname string) {
-
+func processBook(dir string, fname string, outdir string, bookid string) {
 	chapGen := util.NewN64Generator(4)
-	file, err := os.Open(dir + fname)
+	file, err := os.Open(filepath.Join(dir, "stage", fname))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,8 +133,10 @@ func processBook(dir string, fname string) {
 	lineCount := 0
 	var title string
 	var chapTitles []string
+	var toc *models.Toc
+
 	contentStart := false
-	var curChap *Chapter
+	var curChap *models.Chapter
 	chapCount := 0
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -129,7 +148,8 @@ func processBook(dir string, fname string) {
 		// first line is book title
 		if lineCount == 1 {
 			title = line
-			curChap = NewChapter(dir + "toc.txt")
+			toc = models.NewToc(bookid, title)
+			curChap = models.NewChapter(filepath.Join(outdir, "book_toc.txt"))
 			curChap.Title = line
 			chapCount++
 			continue
@@ -150,8 +170,10 @@ func processBook(dir string, fname string) {
 				curChap.Add(title)
 			} else { // start of each chapter
 				curChap.Save()
-				curChap = NewChapter(dir + "chapter_" + strconv.Itoa(chapCount) + ".txt")
+				chapid := chapGen.Next()
+				curChap = models.NewChapter(filepath.Join(outdir, chapid+".txt"))
 				curChap.Title = title
+				toc.AddChapter(chapid, title)
 				chapCount++
 			}
 		} else {
@@ -161,17 +183,17 @@ func processBook(dir string, fname string) {
 		curChap.Save()
 	}
 
+	toc.SaveMD(filepath.Join(outdir, "__TOC.md"))
+
 	log.Printf("title:%s\n", title)
 	log.Printf("chap titles:%s\n", chapTitles)
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-	chapGen.Next()
 }
 
 func processChapter(dir string, infile string, outfile string) {
-	paraGen := util.NewN64Generator(4)
-	sentGen := util.NewN64Generator(4)
+	chapGen := util.NewN64Generator(4)
 	file, err := os.Open(dir + infile)
 	if err != nil {
 		log.Fatal(err)
@@ -188,26 +210,34 @@ func processChapter(dir string, infile string, outfile string) {
 
 	w := bufio.NewWriter(out)
 
+	lineCount := 0
 	// each line is a paragraph
 	for scanner.Scan() {
 		para := scanner.Text()
 		if len(para) == 0 {
 			continue
 		}
-		w.WriteString(paraGen.Next())
-		w.WriteString("|\n")
-		log.Printf("para:{%s}\n", para)
+
+		lineCount++
+		// First line is title of the chapter
+		if lineCount == 1 {
+			w.WriteString("## ")
+		}
+		//log.Printf("para:{%s}\n", para)
 		sents := splitSents(para)
 		for _, sent := range sents {
-			log.Printf("{%s}\n", sent)
-			w.WriteString(sentGen.Next())
-			w.WriteString("|")
+			//log.Printf("{%s}\n", sent)
 			w.WriteString(sent)
-			w.WriteString("\n")
+			w.WriteString("<sent id=\"")
+			w.WriteString(chapGen.Next())
+			w.WriteString("\"/>\n")
 		}
-		// paragraph delimiter
-		w.WriteString("|\n")
+		// paragraph id and delimter
+		w.WriteString("<para id=\"")
+		w.WriteString(chapGen.Next())
+		w.WriteString("\"/>\n\n")
 	}
+	defer w.Flush()
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
