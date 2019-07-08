@@ -247,12 +247,12 @@ func processChapter(dir string, infile string, outfile string) {
 			w.WriteString(sent)
 			w.WriteString("<sent id=\"")
 			w.WriteString(chapGen.Next())
-			w.WriteString("\"/>\n")
+			w.WriteString("\"></sent>\n")
 		}
 		// paragraph id and delimter
 		w.WriteString("<para id=\"")
 		w.WriteString(chapGen.Next())
-		w.WriteString("\"/>\n\n")
+		w.WriteString("\"></para>\n\n")
 	}
 	defer w.Flush()
 

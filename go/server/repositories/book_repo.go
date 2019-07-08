@@ -53,7 +53,7 @@ func (r *BookRepo) readText(chap *models.Chapter) string {
 	bookid := chap.BookID
 	chapid := chap.ID
 	dir := bookid[:4]
-	path := r.rootDir + "books/" + dir + "/" + bookid + "/" + chapid + ".txt"
+	path := r.rootDir + "books/" + dir + "/" + bookid + "/" + chapid + ".md"
 	log.Printf("reading chapter from %s\n", path)
 	text, err := ioutil.ReadFile(path)
 	if err == nil {
