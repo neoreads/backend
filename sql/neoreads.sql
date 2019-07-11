@@ -34,6 +34,22 @@ create table chapters (
     CONSTRAINT book_chapter_key PRIMARY KEY (id, bookid)
 );
 
+-- notes
+
+drop table if exists notes;
+create table notes (
+    id char(8),
+    ntype smallint,
+    ptype smallint,
+    userid char(8),
+    bookid char(8),
+    chapid char(4),
+    paraid char(4),
+    sentid char(4),
+    wordid char(4),
+    CONSTRAINT favorites_key PRIMARY KEY (id)
+);
+
 -- test data ---
 
 -- insert into books VALUES ('00000001', '史记', '司马迁');

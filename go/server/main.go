@@ -9,6 +9,7 @@ import (
 
 	"github.com/neoreads-backend/go/server/controllers"
 	"github.com/neoreads-backend/go/server/repositories"
+	"github.com/neoreads-backend/go/util"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -82,10 +83,21 @@ func initRouter(config *Config) *gin.Engine {
 		book.GET("/:bookid/chapter/:chapid", ctrl.GetBookChapter)
 	}
 
+	note := v1.Group("/note")
+	{
+		repo := repositories.NewNoteRepo(db)
+		ctrl := controllers.NewNoteController(repo)
+
+		note.POST("/add", ctrl.AddNote)
+		note.GET("/remove/:noteid", ctrl.RemoveNote)
+		note.GET("/list", ctrl.ListNotes)
+	}
+
 	return r
 }
 
 func main() {
+	util.InitSeed()
 
 	// init config
 	config := initConfig()

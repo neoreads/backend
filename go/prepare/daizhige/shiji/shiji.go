@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
+	smodels "github.com/neoreads-backend/go/server/models"
 	"github.com/neoreads-backend/go/server/repositories"
 
 	"github.com/neoreads-backend/go/prepare/models"
@@ -110,6 +111,27 @@ func testAddBook() {
 	toc.AddChapter("003", "Chapter 3")
 
 	bookRepo.AddBook(toc)
+}
+
+func testAddNote() {
+	db, err := sqlx.Connect("postgres", "user=postgres dbname=neoreads sslmode=disable password=123456")
+	if err != nil {
+		log.Fatalf("init db failed: %s\n", err)
+	}
+	noteRepo := repositories.NewNoteRepo(db)
+
+	note := smodels.Note{
+		ID:     "12345678",
+		NType:  1,
+		PType:  1,
+		BookID: "abcdefgh",
+		ChapID: "1234",
+		ParaID: "1234",
+		SentID: "1234",
+		WordID: "1234",
+	}
+
+	noteRepo.AddNote(&note)
 }
 func processShiji() {
 	util.InitSeed()
@@ -264,6 +286,7 @@ func processChapter(dir string, infile string, outfile string) {
 func main() {
 	//testSplit()
 	//testGenN64()
-	processShiji()
+	//processShiji()
 	//testAddBook()
+	testAddNote()
 }
