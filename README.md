@@ -18,7 +18,7 @@ NeoReads应用的后台程序：
 - [x] 句子收藏功能
 - [ ] 提供函数将带ID的章节文件净化生成普通文本文件，方便阅读。（包括章节排序功能）。
 - [ ] 提供一个全库输出功能，将所有书籍输出成普通文本文件的集合，建立压缩包。
-- [ ] 根据ID来存储评注定位。
+- [x] 根据ID来存储评注定位。
 - [ ] 使用[authboss](https://github.com/volatiletech/authboss)和[bcrypt](https://godoc.org/golang.org/x/crypto/bcrypt)来实现用户登录和权限功能
 - [ ] 重新组织代码目录结构，将数据与数据库处理的模块提出来，供server与prepare模块共享
 

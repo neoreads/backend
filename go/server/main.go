@@ -70,6 +70,12 @@ func initRouter(config *Config) *gin.Engine {
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	r := gin.Default()
+	r.StaticFile("/", "./public/index.html")
+	r.StaticFile("/index.html", "./public/index.html")
+	r.StaticFile("/favicon.ico", "./public/favicon.ico")
+	r.Static("/css", "./public/css")
+	r.Static("/js", "./public/js")
+	r.Static("/fonts", "./public/fonts")
 	v1 := r.Group("/api/v1")
 
 	// /api/v1/book
