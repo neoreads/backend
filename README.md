@@ -22,6 +22,10 @@ NeoReads应用的后台程序：
 - [ ] 使用[authboss](https://github.com/volatiletech/authboss)和[bcrypt](https://godoc.org/golang.org/x/crypto/bcrypt)来实现用户登录和权限功能
 - [ ] 重新组织代码目录结构，将数据与数据库处理的模块提出来，供server与prepare模块共享
 
+- [ ] 用户登录信息表
+- [ ] 集成argon2用于保存和检查密码
+- [x] JWT后台
+
 # API设计
 
 后台API全部返回JSON格式数据，URL以`/api/v1/`开头

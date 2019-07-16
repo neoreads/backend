@@ -13,10 +13,10 @@ create table books (
 -- table for person info
 drop table if exists people;
 create table people (
-    id char(8),
-    surname varchar(100), -- surname
-    name varchar(101), -- name
-    fname varchar(100) -- full name
+    id char(8) PRIMARY KEY,
+    lastname varchar(100), -- last name
+    firstname varchar(100), -- first name
+    fullname varchar(100) -- full name
 );
 
 -- n to n relation book <-> author
@@ -47,8 +47,30 @@ create table notes (
     paraid char(4),
     sentid char(4),
     wordid char(4),
-    CONSTRAINT favorites_key PRIMARY KEY (id)
+    CONSTRAINT notes_key PRIMARY KEY (id)
 );
+
+
+-- user
+drop table if exists users;
+create table users (
+    id SERIAL PRIMARY KEY,
+    username varchar(12),
+    email varchar(40),
+    pid char(8) REFERENCES people(id), -- person id
+    pwd varchar(100)
+);
+
+CREATE OR REPLACE VIEW users_people AS
+ SELECT u.id AS uid,
+    p.id AS pid,
+    u.username,
+    p.firstname,
+    p.lastname,
+    p.fullname
+   FROM users u,
+    people p
+  WHERE u.pid = p.id;
 
 -- test data ---
 
