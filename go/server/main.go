@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/spf13/viper"
 
@@ -33,6 +33,7 @@ type Config struct {
 	Port     string `json:"port"`
 	DBString string `json:"dbstring"`
 	DataDir  string `json:"datadir"`
+	Prod     bool   `json:"prod"`
 }
 
 func initConfig() *Config {
@@ -40,6 +41,7 @@ func initConfig() *Config {
 	viper.SetDefault("port", ":8080")
 	viper.SetDefault("dbstring", "user=postgres dbname=neoreads sslmode=disable password=123456")
 	viper.SetDefault("datadir", "D:/neoreads/data/")
+	viper.SetDefault("prod", "true")
 
 	viper.SetConfigType("toml")
 	viper.SetConfigName("neoreads-server")
@@ -48,18 +50,19 @@ func initConfig() *Config {
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("fatal error: config file %s not found", err))
+		log.Fatalf("fatal error: config file %s not found", err)
 	}
 
 	config := &Config{}
 	config.Port = viper.GetString("port")
 	config.DBString = viper.GetString("dbstring")
 	config.DataDir = viper.GetString("datadir")
+	config.Prod = viper.GetBool("prod")
 
 	// Pretty print loaded configs
 	js, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		panic(fmt.Errorf("Bad Config:%s", viper.AllSettings()))
+		log.Fatalf("Bad Config:%s", viper.AllSettings())
 	}
 	log.Printf("Loaded Configs:\n%s", string(js))
 
@@ -102,6 +105,16 @@ func initRouter(config *Config) *gin.Engine {
 	return r
 }
 
+func redirect(w http.ResponseWriter, req *http.Request) {
+	// remove/add not default ports from req.Host
+	target := "https://" + req.Host + req.URL.Path
+	if len(req.URL.RawQuery) > 0 {
+		target += "?" + req.URL.RawQuery
+	}
+	//log.Printf("redirect to: %s", target)
+	http.Redirect(w, req, target, http.StatusTemporaryRedirect)
+}
+
 func main() {
 	util.InitSeed()
 
@@ -115,5 +128,11 @@ func main() {
 	r := initRouter(config)
 
 	// listen and serve
-	r.Run(config.Port)
+	if config.Prod {
+		gin.SetMode(gin.ReleaseMode)
+		go http.ListenAndServe(":80", http.HandlerFunc(redirect))
+		log.Fatal(http.ListenAndServeTLS(":443", "certs/cert.pem", "certs/key.pem", r))
+	} else {
+		r.Run(config.Port)
+	}
 }
