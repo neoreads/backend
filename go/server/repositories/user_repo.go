@@ -42,3 +42,13 @@ func (r *UserRepo) CheckLogin(username string, password string) bool {
 	log.Printf("=? :%v\n", pwd == strings.TrimSpace(password))
 	return pwd == strings.TrimSpace(password)
 }
+
+func (r *UserRepo) RegisterUser(username string, email string, password string) error {
+	sql := "INSERT INTO users (username, email, pwd) VALUES ($1, $2, $3)"
+	_, err := r.db.Exec(sql, username, email, password)
+	if err != nil {
+		log.Printf("error registering user %s, with err:%s\n", username, err)
+		return err
+	}
+	return nil
+}

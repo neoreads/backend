@@ -84,17 +84,6 @@ func initConfig() *Config {
 
 var identityKey = "id"
 
-// TODO: remove this with a real auth api
-func helloHandler(c *gin.Context) {
-	claims := jwt.ExtractClaims(c)
-	user, _ := c.Get(identityKey)
-	c.JSON(200, gin.H{
-		"userID":   claims["id"],
-		"userName": user.(*models.User).UserName,
-		"text":     "Hello world",
-	})
-}
-
 func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddleware {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "test zone",
@@ -118,7 +107,7 @@ func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddle
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
 			var loginVals models.Credential
-			if err := c.ShouldBind(&loginVals); err != nil {
+			if err := c.ShouldBindJSON(&loginVals); err != nil {
 				return "", jwt.ErrMissingLoginValues
 			}
 			userID := loginVals.Username
@@ -204,6 +193,7 @@ func initRouter(config *Config) *gin.Engine {
 	}
 
 	note := v1.Group("/note")
+	note.Use(authMiddleware.MiddlewareFunc())
 	{
 		repo := repositories.NewNoteRepo(db)
 		ctrl := controllers.NewNoteController(repo)
@@ -213,16 +203,23 @@ func initRouter(config *Config) *gin.Engine {
 		note.GET("/list", ctrl.ListNotes)
 	}
 
+	user := v1.Group("/user")
+	{
+		repo := repositories.NewUserRepo(db)
+		ctrl := controllers.NewUserController(repo)
+		user.POST("/register", ctrl.RegisterUser)
+
+	}
+
 	token := v1.Group("/token")
 	{
 		token.POST("/login", authMiddleware.LoginHandler)
 		token.GET("/refresh", authMiddleware.RefreshHandler)
 	}
 
-	auth := v1.Group("/auth")
-	auth.Use(authMiddleware.MiddlewareFunc())
+	secure := v1.Group("/secure")
+	secure.Use(authMiddleware.MiddlewareFunc())
 	{
-		auth.GET("/hello", helloHandler)
 	}
 
 	return r
