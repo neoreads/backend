@@ -6,13 +6,14 @@ type Credential struct {
 }
 
 type RegisterInfo struct {
-	Username string `form:"username" json:"username" binding:"required"`
-	Email    string `form:"email" json:"email" binding:"required"`
-	Password string `form:"password" json:"password" binding:"required"`
+	Username  string `form:"username" json:"username" binding:"required"`
+	Email     string `form:"email" json:"email" binding:"required"`
+	Password  string `form:"password" json:"password" binding:"required"`
+	FirstName string `form:"firstname" json:"firstname" binding:"required"`
+	LastName  string `form:"lastname" json:"lastname" binding:"required"`
+	Pid string `form:"pid" json:"pid"`
 }
 
 type User struct {
-	UserName  string
-	FirstName string
-	LastName  string
+	Username string `form:"username" json:"username" binding:"required"`
 }

@@ -92,17 +92,17 @@ func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddle
 		MaxRefresh:  time.Hour,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*models.User); ok {
+			if v, ok := data.(*models.Credential); ok {
 				return jwt.MapClaims{
-					identityKey: v.UserName,
+					identityKey: v.Username,
 				}
 			}
 			return jwt.MapClaims{}
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
-			return &models.User{
-				UserName: claims["id"].(string),
+			return &models.Credential{
+				Username: claims["id"].(string),
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -125,7 +125,7 @@ func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddle
 			return nil, jwt.ErrFailedAuthentication
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if v, ok := data.(*models.User); ok && v.UserName == "admin" {
+			if _, ok := data.(*models.Credential); ok {
 				return true
 			}
 

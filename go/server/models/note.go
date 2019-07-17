@@ -4,7 +4,7 @@ type Note struct {
 	ID     string `json:"id"`
 	NType  int    `json:"ntype"`
 	PType  int    `json:"ptype"`
-	UserID string `json:"userid"`
+	PID    string `json:"pid"`
 	BookID string `json:"bookid"`
 	ChapID string `json:"chapid"`
 	ParaID string `json:"paraid"`

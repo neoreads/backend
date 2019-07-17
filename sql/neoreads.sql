@@ -41,7 +41,7 @@ create table notes (
     id char(8),
     ntype smallint,
     ptype smallint,
-    userid char(8),
+    pid char(8), -- person id, refers to table people
     bookid char(8),
     chapid char(4),
     paraid char(4),
@@ -49,7 +49,6 @@ create table notes (
     wordid char(4),
     CONSTRAINT notes_key PRIMARY KEY (id)
 );
-
 
 -- user
 drop table if exists users;

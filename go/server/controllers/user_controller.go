@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/neoreads-backend/go/util"
+
 	"github.com/neoreads-backend/go/server/models"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +13,14 @@ import (
 )
 
 type UserController struct {
-	Repo *repositories.UserRepo
+	Repo  *repositories.UserRepo
+	IDGen *util.N64Generator
 }
 
 func NewUserController(r *repositories.UserRepo) *UserController {
 	return &UserController{
-		Repo: r,
+		Repo:  r,
+		IDGen: util.NewN64Generator(8),
 	}
 }
 
@@ -42,11 +46,15 @@ func (ctrl *UserController) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	password := r.Password
 	email := r.Email
+
 	// TODO serverside form validation
 	log.Printf("registering: u:%s,e:%s\n", username, email)
-	err = ctrl.Repo.RegisterUser(username, email, password)
+	// TODO check pid uniqueness in db
+	pid := ctrl.IDGen.Next()
+	r.Pid = pid
+
+	err = ctrl.Repo.RegisterUser(&r)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    2,

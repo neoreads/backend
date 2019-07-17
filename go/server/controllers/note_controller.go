@@ -34,7 +34,9 @@ func (ctrl *NoteController) AddNote(c *gin.Context) {
 	// gen note id
 	noteid := ctrl.IDGen.Next()
 	note.ID = noteid
-	note.UserID = "00000001" // TODO: use real user id from auth session
+	// TODO: currently credentials include only users.username, but notes are linked with people.id(or users.pid)
+	user, _ := c.Get("id")
+	note.PID = user.(*models.Credential).Username
 	log.Printf("Note to Add: %v\n", note)
 	ctrl.Repo.AddNote(&note)
 	c.JSON(http.StatusOK, gin.H{"status": "ok", "id": noteid})
@@ -47,9 +49,10 @@ func (ctrl *NoteController) RemoveNote(c *gin.Context) {
 }
 
 func (ctrl *NoteController) ListNotes(c *gin.Context) {
-	userid := "00000001" // TODO: get user id from session
+	user, _ := c.Get("id")
+	username := user.(*models.Credential).Username
 	bookid := c.Query("bookid")
 	chapid := c.Query("chapid")
-	notes := ctrl.Repo.ListNotes(userid, bookid, chapid)
+	notes := ctrl.Repo.ListNotes(username, bookid, chapid)
 	c.JSON(http.StatusOK, notes)
 }
