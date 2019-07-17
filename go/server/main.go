@@ -114,9 +114,12 @@ func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddle
 			password := loginVals.Password
 
 			if userRepo.CheckLogin(userID, password) {
-				if user, found := userRepo.GetUser(userID); found {
-					return &user, nil
-				}
+				return &loginVals, nil
+				/*
+					if user, found := userRepo.GetUser(userID); found {
+						return &user, nil
+					}
+				*/
 			}
 
 			return nil, jwt.ErrFailedAuthentication
