@@ -186,6 +186,7 @@ func initRouter(config *Config) *gin.Engine {
 
 	// /api/v1/book
 	book := v1.Group("/book")
+	books := v1.Group("/books")
 	{
 		repo := repositories.NewBookRepo(db, config.DataDir)
 		ctrl := controllers.NewBookController(repo)
@@ -193,6 +194,8 @@ func initRouter(config *Config) *gin.Engine {
 		book.GET("/:bookid", ctrl.GetBook)
 		book.GET("/:bookid/toc", ctrl.GetTOC)
 		book.GET("/:bookid/chapter/:chapid", ctrl.GetBookChapter)
+
+		books.GET("/hotlist", ctrl.HotList)
 	}
 
 	note := v1.Group("/note")
