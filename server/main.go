@@ -10,10 +10,10 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/neoreads-backend/go/server/controllers"
-	"github.com/neoreads-backend/go/server/models"
-	"github.com/neoreads-backend/go/server/repositories"
-	"github.com/neoreads-backend/go/util"
+	"github.com/neoreads/backend/server/controllers"
+	"github.com/neoreads/backend/server/models"
+	"github.com/neoreads/backend/server/repositories"
+	"github.com/neoreads/backend/util"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"

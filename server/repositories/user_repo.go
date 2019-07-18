@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/neoreads-backend/go/server/models"
+	"github.com/neoreads/backend/server/models"
 )
 
 // UserRepo User related data repository

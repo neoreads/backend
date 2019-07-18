@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/neoreads-backend/go/server/models"
+	"github.com/neoreads/backend/server/models"
 )
 
 // NoteRepo all kinds of notes

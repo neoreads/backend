@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/jmoiron/sqlx"
-	pmodels "github.com/neoreads-backend/go/prepare/models"
-	"github.com/neoreads-backend/go/server/models"
+	pmodels "github.com/neoreads/backend/prepare/models"
+	"github.com/neoreads/backend/server/models"
 )
 
 // BookRepo book related data repository

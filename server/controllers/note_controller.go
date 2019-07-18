@@ -4,12 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/neoreads-backend/go/util"
+	"github.com/neoreads/backend/util"
 
-	"github.com/neoreads-backend/go/server/models"
+	"github.com/neoreads/backend/server/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/neoreads-backend/go/server/repositories"
+	"github.com/neoreads/backend/server/repositories"
 )
 
 // NoteController serves note info

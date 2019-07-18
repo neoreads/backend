@@ -12,12 +12,12 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
-	smodels "github.com/neoreads-backend/go/server/models"
-	"github.com/neoreads-backend/go/server/repositories"
+	smodels "github.com/neoreads/backend/server/models"
+	"github.com/neoreads/backend/server/repositories"
 
-	"github.com/neoreads-backend/go/prepare/models"
+	"github.com/neoreads/backend/prepare/models"
 
-	"github.com/neoreads-backend/go/util"
+	"github.com/neoreads/backend/util"
 )
 
 // RegSplit Split a paragraph into sentences.

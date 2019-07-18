@@ -3,10 +3,10 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/neoreads-backend/go/server/models"
+	"github.com/neoreads/backend/server/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/neoreads-backend/go/server/repositories"
+	"github.com/neoreads/backend/server/repositories"
 )
 
 // BookController serves book info and book content
