@@ -23,7 +23,8 @@ func (r *NoteRepo) AddNote(n *models.Note) {
 		log.Printf("error adding note:%v, with err: %v\n", n, err)
 	}
 	n.PID = pid
-	_, err = r.db.NamedExec("INSERT INTO notes VALUES (:id, :ntype, :ptype, :pid, :bookid, :chapid, :paraid, :sentid, :wordid)", n)
+	_, err = r.db.NamedExec("INSERT INTO notes (id, ntype, ptype, pid, bookid, chapid, paraid, sentid, wordid, content)"+
+		" VALUES (:id, :ntype, :ptype, :pid, :bookid, :chapid, :paraid, :sentid, :wordid, :content)", n)
 	if err != nil {
 		log.Printf("error adding note:%v, with err: %v\n", n, err)
 	}

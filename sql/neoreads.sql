@@ -35,19 +35,55 @@ create table chapters (
 );
 
 -- notes
-
 drop table if exists notes;
 create table notes (
     id char(8),
-    ntype smallint,
-    ptype smallint,
+    "time" timestamp NOT NULL DEFAULT NOW(),
+    ntype smallint, -- note type: 0: mark; 1: note; 2: annotation; 3: comment; 4: reference;  5: dict;
+    ptype smallint, -- position type: 0: word; 1: sentence; 2: paragraph; 3: chapter; 4: book;
     pid char(8), -- person id, refers to table people
     bookid char(8),
     chapid char(4),
     paraid char(4),
     sentid char(4),
-    wordid char(4),
+    wordid char(4), -- TODO: this pos may change to startOffset & endOffset
+    content text DEFAULT '', -- for simple notes, this is markdown content; for complex notes like dictionary, this field is empty, and out reference table is required
     CONSTRAINT notes_key PRIMARY KEY (id)
+);
+
+-- comment
+drop table if exists comments;
+create table comments (
+    id char(8) PRIMARY KEY
+    nid cahr(8), -- note id, refers to note table
+);
+
+-- dict
+drop table if exists dict;
+
+create table dict (
+    id SERIAL PRIMARY KEY,
+    lang char(2), -- quick access to languages(lang)
+    "langid" smallint, -- refer to language table
+    word varchar(100), -- e.g.: '天', 'Sky', 'Ciel'
+);
+
+-- sentence dict
+drop table if exists sentdict;
+create table sentdict (
+    id SERIAL PRIMARY KEY,
+    lang char(2),
+    "langid" smallint,
+    sent varchar(1000)
+);
+
+-- languages
+drop table if exists languages;
+create table languages (
+    id SERIAL PRIMARY KEY,
+    lang char(2), -- language: en, zh, etc. ISO_639_1; TODO: might need ISO_639_2 in the future;
+    scode varchar(4), -- script code (for writing system), ISO_15924, e.g. Hans for Simplified Chinese
+    sno smallint, -- script number, ISO_15924
 );
 
 -- user
