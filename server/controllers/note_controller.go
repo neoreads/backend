@@ -42,6 +42,19 @@ func (ctrl *NoteController) AddNote(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok", "id": noteid})
 }
 
+func (ctrl *NoteController) ModifyNote(c *gin.Context) {
+	var note models.Note
+	if err := c.ShouldBindJSON(&note); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if ok := ctrl.Repo.ModifyNote(&note); ok {
+		c.JSON(http.StatusOK, "")
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to modify note"})
+	}
+}
+
 func (ctrl *NoteController) RemoveNote(c *gin.Context) {
 	id := c.Param("noteid")
 	ctrl.Repo.RemoveNote(id)

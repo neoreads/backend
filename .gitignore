@@ -2,4 +2,5 @@
 *.exe
 launch.json
 *.toml
+*.code-workspace
 public/

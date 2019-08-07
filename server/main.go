@@ -205,6 +205,7 @@ func initRouter(config *Config) *gin.Engine {
 		ctrl := controllers.NewNoteController(repo)
 
 		note.POST("/add", ctrl.AddNote)
+		note.POST("/modify", ctrl.ModifyNote)
 		note.GET("/remove/:noteid", ctrl.RemoveNote)
 		note.GET("/list", ctrl.ListNotes)
 	}

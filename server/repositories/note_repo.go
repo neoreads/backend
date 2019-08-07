@@ -30,6 +30,15 @@ func (r *NoteRepo) AddNote(n *models.Note) {
 	}
 }
 
+func (r *NoteRepo) ModifyNote(n *models.Note) bool {
+	_, err := r.db.NamedExec("UPDATE notes set content = :content where id = :id", n)
+	if err != nil {
+		log.Printf("error modifying note:%v, with err: %v\n", n, err)
+		return false
+	}
+	return true
+}
+
 func (r *NoteRepo) RemoveNote(id string) {
 	_, err := r.db.Exec("DELETE FROM notes where id = $1", id)
 	if err != nil {
