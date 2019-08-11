@@ -210,6 +210,14 @@ func initRouter(config *Config) *gin.Engine {
 		note.GET("/list", ctrl.ListNotes)
 	}
 
+	reviews := v1.Group("/reviews")
+	reviews.Use(authMiddleware.MiddlewareFunc())
+	{
+		repo := repositories.NewReviewRepo(db)
+		ctrl := controllers.NewReviewController(repo)
+		reviews.GET("/notes/:bookid/:chapid", ctrl.ListReviewNotes)
+	}
+
 	user := v1.Group("/user")
 	{
 		repo := repositories.NewUserRepo(db)
