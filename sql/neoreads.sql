@@ -54,8 +54,24 @@ create table notes (
 -- comment
 drop table if exists comments;
 create table comments (
-    id char(8) PRIMARY KEY
+    id char(8) PRIMARY KEY,
     nid cahr(8), -- note id, refers to note table
+);
+
+-- article
+drop table if exists articles;
+create table articles (
+    id char(8) PRIMARY KEY,
+    addtime timestamp NOT NULL DEFAULT NOW(),
+    modtime timestamp NOT NULL DEFAULT NOW(),
+    title varchar(255) NOT NULL,
+    content text -- may move to disk as markdown file in the future
+);
+
+drop table if exists article_people;
+create table article_people (
+    aid char(8), -- article id
+    pid char(8) -- person id
 );
 
 -- dict
@@ -106,6 +122,8 @@ CREATE OR REPLACE VIEW users_people AS
    FROM users u,
     people p
   WHERE u.pid = p.id;
+
+
 
 -- test data ---
 

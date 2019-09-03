@@ -218,6 +218,17 @@ func initRouter(config *Config) *gin.Engine {
 		reviews.GET("/notes/:bookid/:chapid", ctrl.ListReviewNotes)
 	}
 
+	article := v1.Group("article")
+	article.Use(authMiddleware.MiddlewareFunc())
+	{
+		repo := repositories.NewArticleRepo(db)
+		ctrl := controllers.NewArticleController(repo)
+		article.GET("/list", ctrl.ListArticles)
+		article.GET("/get/:artid", ctrl.GetArticle)
+		article.POST("/add", ctrl.AddArticle)
+		article.POST("/modify", ctrl.ModifyArticle)
+	}
+
 	user := v1.Group("/user")
 	{
 		repo := repositories.NewUserRepo(db)
