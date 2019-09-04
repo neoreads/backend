@@ -88,7 +88,7 @@ func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddle
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "test zone",
 		Key:         []byte(config.JWTKey),
-		Timeout:     24 * time.Hour, // TODO: move back to one hour
+		Timeout:     1 * time.Hour,
 		MaxRefresh:  24 * time.Hour,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
