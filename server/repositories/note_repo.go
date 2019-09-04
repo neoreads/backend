@@ -17,13 +17,7 @@ func NewNoteRepo(db *sqlx.DB) *NoteRepo {
 }
 
 func (r *NoteRepo) AddNote(n *models.Note) {
-	var pid string
-	err := r.db.Get(&pid, "SELECT pid from users where username = $1", n.PID)
-	if err != nil {
-		log.Printf("error adding note:%v, with err: %v\n", n, err)
-	}
-	n.PID = pid
-	_, err = r.db.NamedExec("INSERT INTO notes (id, ntype, ptype, pid, bookid, chapid, paraid, sentid, wordid, content)"+
+	_, err := r.db.NamedExec("INSERT INTO notes (id, ntype, ptype, pid, bookid, chapid, paraid, sentid, wordid, content)"+
 		" VALUES (:id, :ntype, :ptype, :pid, :bookid, :chapid, :paraid, :sentid, :wordid, :content)", n)
 	if err != nil {
 		log.Printf("error adding note:%v, with err: %v\n", n, err)
@@ -46,11 +40,11 @@ func (r *NoteRepo) RemoveNote(id string) {
 	}
 }
 
-func (r *NoteRepo) ListNotes(username string, bookid string, chapid string) []models.Note {
+func (r *NoteRepo) ListNotes(pid string, bookid string, chapid string) []models.Note {
 	notes := []models.Note{}
-	err := r.db.Select(&notes, "SELECT * from notes where pid = (SELECT pid from users where username = $1) and bookid = $2 and chapid = $3", username, bookid, chapid)
+	err := r.db.Select(&notes, "SELECT * from notes where pid = $1 and bookid = $2 and chapid = $3", pid, bookid, chapid)
 	if err != nil {
-		log.Printf("error listing notes from db:%v, with err:%v\n", username+"_"+bookid+"_"+chapid, err)
+		log.Printf("error listing notes from db:%v, with err:%v\n", pid+"_"+bookid+"_"+chapid, err)
 	}
 	return notes
 }

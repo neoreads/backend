@@ -18,22 +18,18 @@ func NewCollectionRepo(db *sqlx.DB) *CollectionRepo {
 }
 
 func (r *CollectionRepo) AddCollection(col *models.Collection) bool {
-	var pid string
-	// TODO: get PID from jwt credentials
-	err := r.db.Get(&pid, "SELECT pid from users where username = $1", col.PID)
+	tx, err := r.db.Beginx()
 	if err != nil {
 		log.Printf("error adding Collection:%v, with err: %v\n", col, err)
 		return false
 	}
-	col.PID = pid
-	_, err = r.db.NamedExec("INSERT INTO collections (id, title, intro)"+
+	_, err = tx.NamedExec("INSERT INTO collections (id, title, intro)"+
 		" VALUES (:id, :title, :intro)", col)
 	if err != nil {
 		log.Printf("error adding Collection:%v, with err: %v\n", col, err)
 		return false
 	}
-
-	_, err = r.db.Exec("INSERT INTO collections_people (colid, pid) VALUES ($1, $2)", col.ID, col.PID)
+	_, err = tx.Exec("INSERT INTO collections_people (colid, pid) VALUES ($1, $2)", col.ID, col.PID)
 	if err != nil {
 		log.Printf("error adding Collection:%v, with err: %v\n", col, err)
 		return false
@@ -43,13 +39,14 @@ func (r *CollectionRepo) AddCollection(col *models.Collection) bool {
 	if len(artids) > 0 {
 		for i := range artids {
 			artid := artids[i]
-			_, err = r.db.Exec("INSERT INTO collections_articles (colid, artid) VALUES ($1, $2)", col.ID, artid)
+			_, err = tx.Exec("INSERT INTO collections_articles (colid, artid) VALUES ($1, $2)", col.ID, artid)
 			if err != nil {
 				log.Printf("error adding Collection:%v, with err: %v\n", col, err)
 				return false
 			}
 		}
 	}
+	tx.Commit()
 	return true
 }
 
@@ -92,17 +89,17 @@ func (r *CollectionRepo) GetCollection(colid string) models.Collection {
 	return collection
 }
 
-func (r *CollectionRepo) ListCollections(username string) []models.Collection {
+func (r *CollectionRepo) ListCollections(pid string) []models.Collection {
 	collections := []models.Collection{}
 	// TODO: this might be a performance nightmare
-	sql := "SELECT c.*, p.pid, array_remove(array_agg(a.artid), NULL)::text[] as artids from collections c join collections_people p on c.id = p.colid and p.pid = (SELECT pid from users where username = $1)" + " left join collections_articles a on c.id = a.colid group by c.id, p.pid order by c.modtime desc;"
-	err := r.db.Select(&collections, sql, username)
+	sql := "SELECT c.*, p.pid, array_remove(array_agg(a.artid), NULL)::text[] as artids from collections c join collections_people p on c.id = p.colid and p.pid = $1" + " left join collections_articles a on c.id = a.colid group by c.id, p.pid order by c.modtime desc;"
+	err := r.db.Select(&collections, sql, pid)
 	for a := range collections {
 		col := collections[a]
 		log.Printf("col:%v\n", col)
 	}
 	if err != nil {
-		log.Printf("error listing Collections from db:%v, with err:%v\n", username, err)
+		log.Printf("error listing Collections from db:%v, with err:%v\n", pid, err)
 	}
 	return collections
 }

@@ -82,7 +82,7 @@ func initConfig() *Config {
 	return config
 }
 
-var identityKey = "id"
+var identityKey = "jwtuser"
 
 func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddleware {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
@@ -92,17 +92,21 @@ func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddle
 		MaxRefresh:  24 * time.Hour,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*models.Credential); ok {
+			if v, ok := data.(*models.User); ok {
 				return jwt.MapClaims{
-					identityKey: v.Username,
+					"id":       v.Id,
+					"pid":      v.Pid,
+					"username": v.Username,
 				}
 			}
 			return jwt.MapClaims{}
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
-			return &models.Credential{
-				Username: claims["id"].(string),
+			return &models.User{
+				Id:       claims["id"].(string),
+				Pid:      claims["pid"].(string),
+				Username: claims["username"].(string),
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
@@ -110,25 +114,23 @@ func initAuth(config *Config, userRepo *repositories.UserRepo) *jwt.GinJWTMiddle
 			if err := c.ShouldBindJSON(&loginVals); err != nil {
 				return "", jwt.ErrMissingLoginValues
 			}
-			userID := loginVals.Username
+			username := loginVals.Username
 			password := loginVals.Password
 
-			if userRepo.CheckLogin(userID, password) {
-				return &loginVals, nil
-				/*
-					if user, found := userRepo.GetUser(userID); found {
-						return &user, nil
-					}
-				*/
+			if userRepo.CheckLogin(username, password) {
+				//return &loginVals, nil
+				if user, found := userRepo.GetUser(username); found {
+					return &user, nil
+				}
 			}
 
 			return nil, jwt.ErrFailedAuthentication
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if _, ok := data.(*models.Credential); ok {
+			// TODO: implement authorizator
+			if _, ok := data.(*models.User); ok {
 				return true
 			}
-
 			return false
 		},
 		Unauthorized: func(c *gin.Context, code int, message string) {

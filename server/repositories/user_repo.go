@@ -20,7 +20,7 @@ func NewUserRepo(db *sqlx.DB) *UserRepo {
 
 // GetUser get user with username
 func (r *UserRepo) GetUser(username string) (user models.User, found bool) {
-	err := r.db.Get(&user, "SELECT username from users where username = $1", username)
+	err := r.db.Get(&user, "SELECT id, pid, username from users where username = $1", username)
 	if err != nil {
 		log.Printf("err getting userinfo %s, with error: %s\n", username, err)
 		return models.User{}, false

@@ -47,8 +47,8 @@ func (ctrl *CollectionController) AddCollection(c *gin.Context) {
 
 	aid := ctrl.IDGen.Next()
 	Collection.ID = aid
-	user, _ := c.Get("id")
-	Collection.PID = user.(*models.Credential).Username
+	user, _ := c.Get("jwtuser")
+	Collection.PID = user.(*models.User).Pid
 
 	succ := ctrl.Repo.AddCollection(&Collection)
 
@@ -66,9 +66,9 @@ func (ctrl *CollectionController) GetCollection(c *gin.Context) {
 }
 
 func (ctrl *CollectionController) ListCollections(c *gin.Context) {
-	user, _ := c.Get("id")
-	username := user.(*models.Credential).Username
-	Collections := ctrl.Repo.ListCollections(username)
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+	Collections := ctrl.Repo.ListCollections(pid)
 	c.JSON(http.StatusOK, Collections)
 }
 

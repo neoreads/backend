@@ -21,15 +21,7 @@ func NewArticleRepo(db *sqlx.DB) *ArticleRepo {
 }
 
 func (r *ArticleRepo) AddArticle(a *models.Article) bool {
-	var pid string
-	// TODO: get PID from jwt credentials
-	err := r.db.Get(&pid, "SELECT pid from users where username = $1", a.PID)
-	if err != nil {
-		log.Printf("error adding article:%v, with err: %v\n", a, err)
-		return false
-	}
-	a.PID = pid
-	_, err = r.db.NamedExec("INSERT INTO articles (id, title, content)"+
+	_, err := r.db.NamedExec("INSERT INTO articles (id, title, content)"+
 		" VALUES (:id, :title, :content)", a)
 	if err != nil {
 		log.Printf("error adding article:%v, with err: %v\n", a, err)
@@ -63,16 +55,16 @@ func (r *ArticleRepo) GetArticle(artid string) models.Article {
 	return article
 }
 
-func (r *ArticleRepo) ListArticles(username string) []models.Article {
+func (r *ArticleRepo) ListArticles(pid string) []models.Article {
 	articles := []models.Article{}
-	err := r.db.Select(&articles, "SELECT a.*, p.pid from articles a, article_people p where a.id = p.aid and p.pid = (SELECT pid from users where username = $1) order by a.modtime desc", username)
+	err := r.db.Select(&articles, "SELECT a.*, p.pid from articles a, article_people p where a.id = p.aid and p.pid = $1 order by a.modtime desc", pid)
 	if err != nil {
-		log.Printf("error listing articles from db:%v, with err:%v\n", username, err)
+		log.Printf("error listing articles from db:%v, with err:%v\n", pid, err)
 	}
 	return articles
 }
 
-func (r *ArticleRepo) ListArticlesInCollection(username string, colid string) []models.Article {
+func (r *ArticleRepo) ListArticlesInCollection(pid string, colid string) []models.Article {
 	var artids []string
 	err := r.db.Select(&artids, "SELECT artid from collections_articles where colid = $1", colid)
 	if err != nil {
@@ -81,9 +73,9 @@ func (r *ArticleRepo) ListArticlesInCollection(username string, colid string) []
 
 	// TODO: check if using pq.Array and ANY(?) is the best option here
 	articles := []models.Article{}
-	err = r.db.Select(&articles, "SELECT a.id, a.title, a.modtime, p.pid from articles a, article_people p where a.id = p.aid and p.pid = (SELECT pid from users where username = $1) and a.id = ANY($2) order by a.modtime desc", username, pq.Array(artids))
+	err = r.db.Select(&articles, "SELECT a.id, a.title, a.modtime, p.pid from articles a, article_people p where a.id = p.aid and p.pid = $1 and a.id = ANY($2) order by a.modtime desc", pid, pq.Array(artids))
 	if err != nil {
-		log.Printf("error listing articles from db:%v, with err:%v\n", username, err)
+		log.Printf("error listing articles from db:%v, with err:%v\n", pid, err)
 	}
 	return articles
 }

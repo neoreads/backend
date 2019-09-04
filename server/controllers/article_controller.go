@@ -28,8 +28,6 @@ func (ctrl *ArticleController) ModifyArticle(c *gin.Context) {
 		return
 	}
 
-	//user, _ := c.Get("id")
-	//article.PID = user.(*models.Credential).Username
 	// TODO: check if PID from credential is the same as claimed in the post data
 	succ := ctrl.Repo.ModifyArticle(&article)
 
@@ -48,8 +46,8 @@ func (ctrl *ArticleController) AddArticle(c *gin.Context) {
 
 	aid := ctrl.IDGen.Next()
 	article.ID = aid
-	user, _ := c.Get("id")
-	article.PID = user.(*models.Credential).Username
+	user, _ := c.Get("jwtuser")
+	article.PID = user.(*models.User).Pid
 
 	succ := ctrl.Repo.AddArticle(&article)
 
@@ -67,17 +65,17 @@ func (ctrl *ArticleController) GetArticle(c *gin.Context) {
 }
 
 func (ctrl *ArticleController) ListArticles(c *gin.Context) {
-	user, _ := c.Get("id")
-	username := user.(*models.Credential).Username
-	articles := ctrl.Repo.ListArticles(username)
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+	articles := ctrl.Repo.ListArticles(pid)
 	c.JSON(http.StatusOK, articles)
 }
 
 func (ctrl *ArticleController) ListArticlesInCollection(c *gin.Context) {
 	colid := c.Param("colid")
-	user, _ := c.Get("id")
-	username := user.(*models.Credential).Username
-	articles := ctrl.Repo.ListArticlesInCollection(username, colid)
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+	articles := ctrl.Repo.ListArticlesInCollection(pid, colid)
 	c.JSON(http.StatusOK, articles)
 }
 
