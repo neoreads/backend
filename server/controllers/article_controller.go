@@ -72,3 +72,13 @@ func (ctrl *ArticleController) ListArticles(c *gin.Context) {
 	articles := ctrl.Repo.ListArticles(username)
 	c.JSON(http.StatusOK, articles)
 }
+
+func (ctrl *ArticleController) RemoveArticle(c *gin.Context) {
+	id := c.Param("artid")
+	succ := ctrl.Repo.RemoveArticle(id)
+	if succ {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "error removing article in repo"})
+	}
+}

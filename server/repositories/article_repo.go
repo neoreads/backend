@@ -70,3 +70,19 @@ func (r *ArticleRepo) ListArticles(username string) []models.Article {
 	return articles
 
 }
+
+func (r *ArticleRepo) RemoveArticle(artid string) bool {
+	tx := r.db.MustBegin()
+	_, err := tx.Exec("DELETE FROM articles where id = $1", artid)
+	if err != nil {
+		log.Printf("error removing aritcle from db:%v, with err:%v\n", artid, err)
+		return false
+	}
+	_, err = tx.Exec("DELETE FROM article_people where aid = $1", artid)
+	if err != nil {
+		log.Printf("error removing artlce_people relation from db:%v, with err:%v\n", artid, err)
+		return false
+	}
+	tx.Commit()
+	return true
+}

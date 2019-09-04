@@ -225,6 +225,7 @@ func initRouter(config *Config) *gin.Engine {
 		ctrl := controllers.NewArticleController(repo)
 		article.GET("/list", ctrl.ListArticles)
 		article.GET("/get/:artid", ctrl.GetArticle)
+		article.GET("/remove/:artid", ctrl.RemoveArticle)
 		article.POST("/add", ctrl.AddArticle)
 		article.POST("/modify", ctrl.ModifyArticle)
 	}
