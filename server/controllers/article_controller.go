@@ -73,6 +73,14 @@ func (ctrl *ArticleController) ListArticles(c *gin.Context) {
 	c.JSON(http.StatusOK, articles)
 }
 
+func (ctrl *ArticleController) ListArticlesInCollection(c *gin.Context) {
+	colid := c.Param("colid")
+	user, _ := c.Get("id")
+	username := user.(*models.Credential).Username
+	articles := ctrl.Repo.ListArticlesInCollection(username, colid)
+	c.JSON(http.StatusOK, articles)
+}
+
 func (ctrl *ArticleController) RemoveArticle(c *gin.Context) {
 	id := c.Param("artid")
 	succ := ctrl.Repo.RemoveArticle(id)

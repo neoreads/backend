@@ -3,6 +3,8 @@ package repositories
 import (
 	"log"
 
+	"github.com/lib/pq"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/neoreads/backend/server/models"
 )
@@ -68,7 +70,22 @@ func (r *ArticleRepo) ListArticles(username string) []models.Article {
 		log.Printf("error listing articles from db:%v, with err:%v\n", username, err)
 	}
 	return articles
+}
 
+func (r *ArticleRepo) ListArticlesInCollection(username string, colid string) []models.Article {
+	var artids []string
+	err := r.db.Select(&artids, "SELECT artid from collections_articles where colid = $1", colid)
+	if err != nil {
+		log.Printf("error listing articles for collection from db:%v, with err:%v\n", colid, err)
+	}
+
+	// TODO: check if using pq.Array and ANY(?) is the best option here
+	articles := []models.Article{}
+	err = r.db.Select(&articles, "SELECT a.id, a.title, a.modtime, p.pid from articles a, article_people p where a.id = p.aid and p.pid = (SELECT pid from users where username = $1) and a.id = ANY($2) order by a.modtime desc", username, pq.Array(artids))
+	if err != nil {
+		log.Printf("error listing articles from db:%v, with err:%v\n", username, err)
+	}
+	return articles
 }
 
 func (r *ArticleRepo) RemoveArticle(artid string) bool {

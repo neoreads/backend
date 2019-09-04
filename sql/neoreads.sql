@@ -58,7 +58,7 @@ create table comments (
     nid cahr(8), -- note id, refers to note table
 );
 
--- article
+-- articles
 drop table if exists articles;
 create table articles (
     id char(8) PRIMARY KEY,
@@ -69,10 +69,38 @@ create table articles (
 );
 
 drop table if exists article_people;
+-- one article may have multiple authors
 create table article_people (
     aid char(8), -- article id
     pid char(8) -- person id
 );
+
+-- collections
+drop table if exists collections;
+create table collections (
+    id char(8) PRIMARY KEY,
+    addtime timestamp NOT NULL DEFAULT NOW(),
+    modtime timestamp NOT NULL DEFAULT NOW(),
+    title varchar(255) NOT NULL,
+    intro text
+);
+
+drop table if exists collections_people;
+-- one collection may have multiple authors
+create table collections_people (
+    colid char(8), -- collection id
+    pid char(8) -- person id
+);
+
+-- n to n relationship
+drop table if exists collections_articles;
+create table collections_articles (
+    colid char(8),
+    artid char(8)
+)
+
+
+
 
 -- dict
 drop table if exists dict;

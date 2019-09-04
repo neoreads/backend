@@ -218,7 +218,7 @@ func initRouter(config *Config) *gin.Engine {
 		reviews.GET("/notes/:bookid/:chapid", ctrl.ListReviewNotes)
 	}
 
-	article := v1.Group("article")
+	article := v1.Group("articles")
 	article.Use(authMiddleware.MiddlewareFunc())
 	{
 		repo := repositories.NewArticleRepo(db)
@@ -228,6 +228,21 @@ func initRouter(config *Config) *gin.Engine {
 		article.GET("/remove/:artid", ctrl.RemoveArticle)
 		article.POST("/add", ctrl.AddArticle)
 		article.POST("/modify", ctrl.ModifyArticle)
+
+		article.GET("/collection/:colid", ctrl.ListArticlesInCollection)
+	}
+
+	collections := v1.Group("collections")
+	collections.Use(authMiddleware.MiddlewareFunc())
+	{
+		repo := repositories.NewCollectionRepo(db)
+		ctrl := controllers.NewCollectionController(repo)
+
+		collections.GET("/get/:colid", ctrl.GetCollection)
+		collections.GET("/list", ctrl.ListCollections)
+		collections.GET("/remove/:colid", ctrl.RemoveCollection)
+		collections.POST("/add", ctrl.AddCollection)
+		collections.POST("/modify", ctrl.ModifyCollection)
 	}
 
 	user := v1.Group("/user")
