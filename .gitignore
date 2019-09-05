@@ -4,3 +4,4 @@ launch.json
 *.toml
 *.code-workspace
 public/
+upload/

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"path"
+	"strings"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt"
@@ -168,13 +170,14 @@ func initRouter(config *Config) *gin.Engine {
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	r := gin.Default()
+
 	r.StaticFile("/", "./public/index.html")
 	r.StaticFile("/index.html", "./public/index.html")
 	r.StaticFile("/favicon.ico", "./public/favicon.ico")
 	r.Static("/css", "./public/css")
 	r.Static("/js", "./public/js")
 	r.Static("/fonts", "./public/fonts")
-
+	r.Static("/res/img", "./upload/img")
 	userRepo := repositories.NewUserRepo(db)
 	authMiddleware := initAuth(config, userRepo)
 
@@ -185,6 +188,30 @@ func initRouter(config *Config) *gin.Engine {
 	})
 
 	v1 := r.Group("/api/v1")
+
+	upload := v1.Group("/upload")
+	upload.Use(authMiddleware.MiddlewareFunc())
+	{
+		imgIDGen := util.NewN64Generator(8)
+		upload.POST("/img", func(ctx *gin.Context) {
+			file, _ := ctx.FormFile("file")
+			// TODO: check file name not to contain any path seperator to prevent security flaw
+			if strings.Contains(file.Filename, "\\") || strings.Contains(file.Filename, "/") {
+				ctx.JSON(http.StatusBadRequest, gin.H{"status": "error", "cause": "file path insecure"})
+				return
+			}
+			imgid := imgIDGen.Next()
+			log.Printf("receiving img upload: %v\n", file.Filename)
+			imgName := imgid + "_" + file.Filename
+			fpath := path.Join("./upload/img/", imgName)
+			err := ctx.SaveUploadedFile(file, fpath)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			ctx.JSON(http.StatusOK, gin.H{"status": "ok", "imgid": imgid})
+		})
+	}
 
 	// /api/v1/book
 	book := v1.Group("/book")
@@ -198,6 +225,10 @@ func initRouter(config *Config) *gin.Engine {
 		book.GET("/:bookid/chapter/:chapid", ctrl.GetBookChapter)
 
 		books.GET("/hotlist", ctrl.HotList)
+
+		books.Use(authMiddleware.MiddlewareFunc())
+		books.POST("/add", ctrl.AddBook)
+		books.GET("/mine", ctrl.ListMyBooks)
 	}
 
 	note := v1.Group("/note")

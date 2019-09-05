@@ -6,7 +6,8 @@ drop table if exists books;
 create table books (
     id char(8),
     title varchar(200),
-    authors varchar(100),
+    cover char(8),
+    intro text,
     CONSTRAINT books_pk PRIMARY KEY (id)
 );
 
@@ -19,11 +20,10 @@ create table people (
     fullname varchar(100) -- full name
 );
 
--- n to n relation book <-> author
-drop table if exists book_author;
-create table book_author (
-    book_id char(8),
-    author_id char(8)
+drop table if exists books_people;
+create table books_people(
+    bookid char(8),
+    pid char(8)
 );
 
 create table chapters (

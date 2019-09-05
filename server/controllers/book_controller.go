@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/neoreads/backend/server/models"
+	"github.com/neoreads/backend/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/neoreads/backend/server/repositories"
@@ -11,11 +12,15 @@ import (
 
 // BookController serves book info and book content
 type BookController struct {
-	Repo *repositories.BookRepo
+	Repo  *repositories.BookRepo
+	IDGen *util.N64Generator
 }
 
 func NewBookController(r *repositories.BookRepo) *BookController {
-	return &BookController{Repo: r}
+	return &BookController{
+		Repo:  r,
+		IDGen: util.NewN64Generator(8),
+	}
 }
 
 func (ctrl *BookController) GetBook(c *gin.Context) {
@@ -49,9 +54,40 @@ func (ctrl *BookController) GetBookChapter(c *gin.Context) {
 func (ctrl *BookController) HotList(c *gin.Context) {
 	var books []models.Book
 	books = append(books, models.Book{
-		ID:      "bKbnk8Zd",
-		Title:   "史记",
-		Authors: "司马迁",
+		ID:    "bKbnk8Zd",
+		Title: "史记",
 	})
+	c.JSON(http.StatusOK, books)
+}
+
+func (ctrl *BookController) AddBook(c *gin.Context) {
+	var book models.Book
+
+	if err := c.ShouldBindJSON(&book); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// gen book id
+	bookid := ctrl.IDGen.Next()
+	book.ID = bookid
+
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+
+	succ := ctrl.Repo.AddBook(pid, &book)
+	if succ {
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "id": bookid})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "repo error"})
+	}
+
+}
+
+func (ctrl *BookController) ListMyBooks(c *gin.Context) {
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+
+	books := ctrl.Repo.ListBooksByAuthor(pid)
 	c.JSON(http.StatusOK, books)
 }

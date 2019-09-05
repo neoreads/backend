@@ -81,7 +81,27 @@ func (r *BookRepo) GetContent(bookid string, chapid string) (content models.Cont
 	return content, false
 }
 
-func (r *BookRepo) AddBook(toc *pmodels.Toc) {
+func (r *BookRepo) AddBook(pid string, book *models.Book) bool {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		log.Printf("Error adding book %v\n in repo, can't start transaction", book)
+		return false
+	}
+	_, err = tx.NamedExec("INSERT INTO books (id, title, intro, cover) VALUES (:id, :title, :intro, :cover)", book)
+	if err != nil {
+		log.Printf("Error adding book %v in repo, with error %v\n", book, err)
+		return false
+	}
+	_, err = tx.Exec("INSERT INTO books_people (bookid, pid) VALUES ($1, $2)", book.ID, pid)
+	if err != nil {
+		log.Printf("Error adding book %v in repo, with error %v\n", book, err)
+		return false
+	}
+	tx.Commit()
+	return true
+}
+
+func (r *BookRepo) AddBookWithToc(toc *pmodels.Toc) {
 	r.db.Exec("INSERT INTO books VALUES($1, $2)", toc.BookID, toc.Title)
 	for od, item := range toc.Items {
 		_, err := r.db.Exec("INSERT INTO chapters VALUES($1, $2, $3, $4)",
@@ -90,4 +110,16 @@ func (r *BookRepo) AddBook(toc *pmodels.Toc) {
 			log.Fatal(err)
 		}
 	}
+}
+
+func (r *BookRepo) ListBooksByAuthor(pid string) []models.Book {
+	var books []models.Book
+
+	err := r.db.Select(&books, "SELECT b.* from books b, books_people p where b.id = p.bookid and p.pid = $1", pid)
+	if err != nil {
+		log.Printf("Error listing books for pid %v in repo, with error %v\n", pid, err)
+		return books
+	}
+
+	return books
 }
