@@ -101,6 +101,48 @@ func (r *BookRepo) AddBook(pid string, book *models.Book) bool {
 	return true
 }
 
+func (r *BookRepo) ModifyBook(pid string, book *models.Book) bool {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		log.Printf("Error modifying book %v\n in repo, can't start transaction", book)
+		return false
+	}
+	_, err = tx.NamedExec("UPDATE books set title = :title, intro = :intro, cover = :cover where id = :id", book)
+	if err != nil {
+		log.Printf("Error updating book %v in repo, with error %v\n", book, err)
+		return false
+	}
+	/* NOTE: you can't change author of a book, at least for now
+	_, err = tx.Exec("INSERT INTO books_people (bookid, pid) VALUES ($1, $2)", book.ID, pid)
+	if err != nil {
+		log.Printf("Error adding book %v in repo, with error %v\n", book, err)
+		return false
+	}
+	*/
+	tx.Commit()
+	return true
+}
+
+func (r *BookRepo) RemoveBook(bookid string) bool {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		log.Printf("Error removing book %v\n in repo, can't start transaction", bookid)
+		return false
+	}
+	_, err = tx.Exec("DELETE from books where id = $1", bookid)
+	if err != nil {
+		log.Printf("Error removing book %v in repo, with error %v\n", bookid, err)
+		return false
+	}
+	_, err = tx.Exec("DELETE from books_people where bookid = $1", bookid)
+	if err != nil {
+		log.Printf("Error removing books_people relation %v in repo, with error %v\n", bookid, err)
+		return false
+	}
+	tx.Commit()
+	return true
+}
+
 func (r *BookRepo) AddBookWithToc(toc *pmodels.Toc) {
 	r.db.Exec("INSERT INTO books VALUES($1, $2)", toc.BookID, toc.Title)
 	for od, item := range toc.Items {
@@ -115,7 +157,7 @@ func (r *BookRepo) AddBookWithToc(toc *pmodels.Toc) {
 func (r *BookRepo) ListBooksByAuthor(pid string) []models.Book {
 	var books []models.Book
 
-	err := r.db.Select(&books, "SELECT b.* from books b, books_people p where b.id = p.bookid and p.pid = $1", pid)
+	err := r.db.Select(&books, "SELECT b.* from books b, books_people p where b.id = p.bookid and p.pid = $1 order by b.title asc", pid)
 	if err != nil {
 		log.Printf("Error listing books for pid %v in repo, with error %v\n", pid, err)
 		return books

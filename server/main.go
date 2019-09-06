@@ -228,7 +228,10 @@ func initRouter(config *Config) *gin.Engine {
 
 		books.Use(authMiddleware.MiddlewareFunc())
 		books.POST("/add", ctrl.AddBook)
+		books.POST("/modify", ctrl.ModifyBook)
 		books.GET("/mine", ctrl.ListMyBooks)
+		books.GET("/get/:bookid", ctrl.GetBook)
+		books.GET("/remove/:bookid", ctrl.RemoveBook)
 	}
 
 	note := v1.Group("/note")
