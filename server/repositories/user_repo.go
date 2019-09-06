@@ -6,6 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/neoreads/backend/server/models"
+	"github.com/neoreads/backend/util"
 )
 
 // UserRepo User related data repository
@@ -37,35 +38,43 @@ func (r *UserRepo) GetUser(username string) (user models.User, found bool) {
 }
 
 // CheckLogin check if a user has the right password
-// TODO: check password hashes instead of plain password
 func (r *UserRepo) CheckLogin(username string, password string) bool {
 	var pwd string
-	log.Printf("username: %s, password:%s\n", username, password)
 	err := r.db.Get(&pwd, "SELECT pwd from users where username = $1", username)
-	log.Printf("pwd:%s", pwd)
 	if err != nil {
 		log.Printf("error getting user %s, with err: %s\n", username, err)
 		return false
 	}
-	log.Printf("=? :%v\n", pwd == strings.TrimSpace(password))
-	return pwd == strings.TrimSpace(password)
+	match := util.CompareHash(strings.TrimSpace(password), pwd)
+	return match
 }
 
 func (r *UserRepo) RegisterUser(reg *models.RegisterInfo) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		log.Printf("error registering person %v, cant start transaction, with err:%s\n", reg.Username, err)
+		return err
+	}
 	// create a record in people table
 	sql := "INSERT INTO people (id, firstname, lastname) VALUES ($1, $2, $3)"
-	_, err := r.db.Exec(sql, reg.Pid, reg.FirstName, reg.LastName)
+	_, err = tx.Exec(sql, reg.Pid, reg.FirstName, reg.LastName)
 	if err != nil {
-		log.Printf("error registering person %v, with err:%s\n", r, err)
+		log.Printf("error registering person %v, with err:%s\n", reg.Username, err)
+		return err
+	}
+	// hash password
+	hashedPwd, err := util.Hash(reg.Password)
+	if err != nil {
+		log.Printf("error hashing password %v, with err:%s\n", reg.Username, err)
 		return err
 	}
 	// create a record in users table
 	sql = "INSERT INTO users (username, email, pwd, pid) VALUES ($1, $2, $3, $4)"
-	_, err = r.db.Exec(sql, reg.Username, reg.Email, reg.Password, reg.Pid)
+	_, err = tx.Exec(sql, reg.Username, reg.Email, hashedPwd, reg.Pid)
 	if err != nil {
 		log.Printf("error registering user %s, with err:%s\n", reg.Username, err)
 		return err
 	}
-
+	tx.Commit()
 	return nil
 }
