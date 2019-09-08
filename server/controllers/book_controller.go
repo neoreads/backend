@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/neoreads/backend/server/models"
 	"github.com/neoreads/backend/util"
@@ -12,14 +13,16 @@ import (
 
 // BookController serves book info and book content
 type BookController struct {
-	Repo  *repositories.BookRepo
-	IDGen *util.N64Generator
+	Repo      *repositories.BookRepo
+	IDGen     *util.N64Generator
+	ChapIDGen *util.N64Generator
 }
 
 func NewBookController(r *repositories.BookRepo) *BookController {
 	return &BookController{
-		Repo:  r,
-		IDGen: util.NewN64Generator(8),
+		Repo:      r,
+		IDGen:     util.NewN64Generator(8),
+		ChapIDGen: util.NewN64Generator(4),
 	}
 }
 
@@ -87,6 +90,14 @@ func (ctrl *BookController) AddBook(c *gin.Context) {
 	user, _ := c.Get("jwtuser")
 	pid := user.(*models.User).Pid
 
+	// gen chap ids
+	for i := range book.Toc {
+		chap := &book.Toc[i]
+		if chap.ID == "" {
+			chap.ID = ctrl.ChapIDGen.Next()
+		}
+	}
+
 	succ := ctrl.Repo.AddBook(pid, &book)
 	if succ {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "id": bookid})
@@ -106,6 +117,14 @@ func (ctrl *BookController) ModifyBook(c *gin.Context) {
 
 	user, _ := c.Get("jwtuser")
 	pid := user.(*models.User).Pid
+
+	// gen chap ids
+	for i := range book.Toc {
+		chap := &book.Toc[i]
+		if strings.TrimSpace(chap.ID) == "" {
+			chap.ID = ctrl.ChapIDGen.Next()
+		}
+	}
 
 	succ := ctrl.Repo.ModifyBook(pid, &book)
 	if succ {

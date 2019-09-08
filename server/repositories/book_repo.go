@@ -23,6 +23,8 @@ func NewBookRepo(db *sqlx.DB, root string) *BookRepo {
 // GetBook get book info by bookid
 func (r *BookRepo) GetBook(id string) (book models.Book, found bool) {
 	err := r.db.Get(&book, "SELECT * from books where id=$1", id)
+	toc := r.GetTOC(id)
+	book.Toc = toc
 	if err != nil {
 		return models.Book{}, false
 	}
@@ -97,6 +99,18 @@ func (r *BookRepo) AddBook(pid string, book *models.Book) bool {
 		log.Printf("Error adding book %v in repo, with error %v\n", book, err)
 		return false
 	}
+	// add toc into chapters
+	// TODO: use batch insert to improve performance
+	log.Printf("Got toc:%#v\n", book.Toc)
+	toc := book.Toc
+	for i := range toc {
+		chap := toc[i]
+		_, err = tx.Exec("INSERT INTO chapters VALUES ($1, $2, $3, $4)", chap.ID, chap.Order, book.ID, chap.Title)
+		if err != nil {
+			log.Printf("Error adding chapter %v for book %v in repo, with error %v\n", chap, book.ID, err)
+			return false
+		}
+	}
 	tx.Commit()
 	return true
 }
@@ -112,6 +126,13 @@ func (r *BookRepo) ModifyBook(pid string, book *models.Book) bool {
 		log.Printf("Error updating book %v in repo, with error %v\n", book, err)
 		return false
 	}
+	// update the chapters
+	err = r.updateChapters(tx, book)
+	if err != nil {
+		log.Printf("Error updating chapters for book %v in repo, with error %v\n", book, err)
+		return false
+	}
+
 	/* NOTE: you can't change author of a book, at least for now
 	_, err = tx.Exec("INSERT INTO books_people (bookid, pid) VALUES ($1, $2)", book.ID, pid)
 	if err != nil {
@@ -121,6 +142,27 @@ func (r *BookRepo) ModifyBook(pid string, book *models.Book) bool {
 	*/
 	tx.Commit()
 	return true
+}
+
+func (r *BookRepo) updateChapters(tx *sqlx.Tx, book *models.Book) error {
+	// remove current Chapters
+	_, err := tx.Exec("DELETE FROM chapters where bookid = $1", book.ID)
+	if err != nil {
+		return err
+	}
+	// add toc into chapters
+	// TODO: use batch insert to improve performance
+	log.Printf("Got toc:%#v\n", book.Toc)
+	toc := book.Toc
+	for i := range toc {
+		chap := toc[i]
+		_, err = tx.Exec("INSERT INTO chapters VALUES ($1, $2, $3, $4)", chap.ID, chap.Order, book.ID, chap.Title)
+		if err != nil {
+			log.Printf("Error adding chapter %v for book %v in repo, with error %v\n", chap, book.ID, err)
+			return err
+		}
+	}
+	return err
 }
 
 func (r *BookRepo) RemoveBook(bookid string) bool {
