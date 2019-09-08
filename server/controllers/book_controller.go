@@ -132,7 +132,25 @@ func (ctrl *BookController) ModifyBook(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "repo error"})
 	}
+}
 
+func (ctrl *BookController) ModifyChapter(c *gin.Context) {
+	var chapter models.Chapter
+	if err := c.ShouldBindJSON(&chapter); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// TODO: check if the user is authorized to do this action
+	// user, _ := c.Get("jwtuser")
+	// pid := user.(*models.User).Pid
+
+	succ := ctrl.Repo.ModifyChapter(&chapter)
+	if succ {
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "id": chapter.ID, "bookid": chapter.BookID})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "repo error"})
+	}
 }
 
 func (ctrl *BookController) ListMyBooks(c *gin.Context) {

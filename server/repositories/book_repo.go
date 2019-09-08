@@ -1,8 +1,11 @@
 package repositories
 
 import (
+	"bufio"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
 
 	"github.com/jmoiron/sqlx"
 	pmodels "github.com/neoreads/backend/prepare/models"
@@ -77,6 +80,7 @@ func (r *BookRepo) GetContent(bookid string, chapid string) (content models.Cont
 		content.Content = text
 		content.ID = chap.ID
 		content.Title = chap.Title
+		content.BookID = bookid
 		return content, true
 	}
 	log.Printf("erro:%s", err)
@@ -163,6 +167,36 @@ func (r *BookRepo) updateChapters(tx *sqlx.Tx, book *models.Book) error {
 		}
 	}
 	return err
+}
+
+func (r *BookRepo) ModifyChapter(chapter *models.Chapter) bool {
+	// update chapter content
+	dir := path.Join(r.rootDir, "books", chapter.BookID[:4], chapter.BookID)
+	if err := os.MkdirAll(dir, 0644); err != nil {
+		log.Printf("Error creating dir for chapter")
+		return false
+	}
+	file :=  path.Join(dir, chapter.ID) + ".md"
+	f, err := os.Create(file)
+	if err != nil {
+		log.Printf("Error opening file for chapter")
+		return false;
+	}
+	defer f.Close()
+	w := bufio.NewWriter(f)
+
+	w.WriteString(chapter.Content)
+	w.Flush()
+
+	// update chapter info in db
+	{
+		_, err := r.db.Exec("UPDATE chapters set title = $1 where bookid = $2 and id = $3", chapter.Title, chapter.BookID, chapter.ID)
+		if err != nil {
+			log.Printf("Error updating chapter %v with title %v, error: %v\n", chapter.ID, chapter.Title, err)
+			return false
+		}
+	}
+	return true
 }
 
 func (r *BookRepo) RemoveBook(bookid string) bool {

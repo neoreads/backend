@@ -232,6 +232,8 @@ func initRouter(config *Config) *gin.Engine {
 		books.GET("/mine", ctrl.ListMyBooks)
 		books.GET("/get/:bookid", ctrl.GetBook)
 		books.GET("/remove/:bookid", ctrl.RemoveBook)
+		books.GET("/chapter/get/:bookid/:chapid", ctrl.GetBookChapter)
+		books.POST("/chapter/modify", ctrl.ModifyChapter)
 	}
 
 	note := v1.Group("/note")
