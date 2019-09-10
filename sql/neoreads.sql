@@ -97,9 +97,16 @@ drop table if exists collections_articles;
 create table collections_articles (
     colid char(8),
     artid char(8)
-)
+);
 
 
+-- tags
+drop table if exists tags;
+create table tags (
+    id char(8),
+    kind smallint, -- tag type: 0: topic, 1: event, 2: people, 4: place, 5: emotion
+    tag varchar(200)
+);
 
 
 -- dict
