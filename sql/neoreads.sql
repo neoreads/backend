@@ -108,6 +108,20 @@ create table tags (
     tag varchar(200)
 );
 
+-- news
+drop table if exists news;
+create table news (
+    id char(8) PRIMARY KEY,
+    kind smallint, -- news type: 0: external-link, 1: markdown post, 2: image/gif/video
+    addtime timestamp DEFAULT now(),
+    modtime timestamp DEFAULT now(),
+    link text,
+    source varchar(200),
+    title text,
+    summary text,
+    content text
+);
+
 
 -- dict
 drop table if exists dict;

@@ -283,6 +283,17 @@ func initRouter(config *Config) *gin.Engine {
 		collections.POST("/modify", ctrl.ModifyCollection)
 	}
 
+	news := v1.Group("news")
+	{
+		repo := repositories.NewNewsRepo(db)
+		ctrl := controllers.NewNewsController(repo)
+
+		news.GET("/list", ctrl.ListNews)
+
+		news.Use(authMiddleware.MiddlewareFunc())
+		news.POST("/add", ctrl.AddNews)
+	}
+
 	user := v1.Group("/user")
 	{
 		repo := repositories.NewUserRepo(db)
