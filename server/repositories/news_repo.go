@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"encoding/json"
 	"log"
 
 	"github.com/jmoiron/sqlx"
@@ -55,26 +54,42 @@ func (r *NewsRepo) AddNews(news *models.News) bool {
 	return true
 }
 
-func (r *NewsRepo) ListNews() []models.News {
+func (r *NewsRepo) ListNews(tagid string) []models.News {
 	var news []models.News
-	sql := `select n.*, array_to_json(array_remove(array_agg(row_to_json(t.*)::text), null)::json[]) as tagsjson from news n 
+	var sql string
+	if tagid == "" {
+		sql = `select n.*, array_to_json(array_remove(array_agg(row_to_json(t.*)::text), null)::json[]) as tagsjson from news n 
 	left join news_tags nt on n.id = nt.newsid
 	left join tags t on t.id = nt.tagid group by n.id order by n.modtime desc;`
-	err := r.db.Select(&news, sql)
-	if err != nil {
-		log.Printf("Error listing news: %v\n", err)
-	}
-	//  convert tagsjson to tags
-	for i := range news {
-		item := &news[i]
-		log.Printf("checking tagsjson:%v\n", item.TagsJSON)
-		if item.TagsJSON != "" {
-			err = json.Unmarshal([]byte(item.TagsJSON), &item.Tags)
-			if err != nil {
-				log.Printf("Error unmarshaling tagsjson:%v, with error: %v\n", item.TagsJSON, err)
-			}
-			item.TagsJSON = ""
+		err := r.db.Select(&news, sql)
+
+		if err != nil {
+			log.Printf("Error listing news: %v\n", err)
+		}
+	} else {
+		log.Printf("selecting for tagid: %v\n", tagid)
+		sql = `select n.*, array_to_json(array_remove(array_agg(row_to_json(t.*)::text), null)::json[]) as tagsjson from news n 
+	join news_tags ntt on n.id = ntt.newsid and ntt.tagid = $1
+	left join news_tags nt on n.id = nt.newsid
+	left join tags t on t.id = nt.tagid group by n.id order by n.modtime desc;`
+		err := r.db.Select(&news, sql, tagid)
+
+		if err != nil {
+			log.Printf("Error listing news: %v\n", err)
 		}
 	}
+	//  convert tagsjson to tags
+	/*
+		for i := range news {
+			item := &news[i]
+				if item.TagsJSON != "" {
+					err = json.Unmarshal([]byte(item.TagsJSON), &item.Tags)
+					if err != nil {
+						log.Printf("Error unmarshaling tagsjson:%v, with error: %v\n", item.TagsJSON, err)
+					}
+					//item.TagsJSON = ""
+				}
+		}
+	*/
 	return news
 }

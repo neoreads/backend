@@ -47,6 +47,7 @@ func (ctrl *NewsController) AddNews(c *gin.Context) {
 }
 
 func (ctrl *NewsController) ListNews(c *gin.Context) {
-	newsList := ctrl.Repo.ListNews()
+	tagid := c.Query("tagid")
+	newsList := ctrl.Repo.ListNews(tagid)
 	c.JSON(http.StatusOK, newsList)
 }
