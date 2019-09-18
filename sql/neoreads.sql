@@ -1,6 +1,76 @@
 drop schema public cascade;
 create schema public;
 
+
+--- begin of utils
+
+--- ID Gen Trigger, refer to https://blog.andyet.com/2016/02/23/generating-shortids-in-postgres/
+
+-- Create a trigger function that takes no arguments.
+-- Trigger functions automatically have OLD, NEW records
+-- and TG_TABLE_NAME as well as others.
+CREATE OR REPLACE FUNCTION gen_unique_id()
+RETURNS TRIGGER AS $$
+
+ -- Declare the variables we'll be using.
+DECLARE
+  key TEXT;
+  qry TEXT;
+  found TEXT;
+BEGIN
+
+  -- generate the first part of a query as a string with safely
+  -- escaped table name, using || to concat the parts
+  qry := 'SELECT id FROM ' || quote_ident(TG_TABLE_NAME) || ' WHERE id=';
+
+  -- This loop will probably only run once per call until we've generated
+  -- millions of ids.
+  LOOP
+
+    -- Generate our string bytes and re-encode as a base64 string.
+    key := encode(gen_random_bytes(TG_ARGV[0]::int*3/4), 'base64');
+
+    -- Base64 encoding contains 2 URL unsafe characters by default.
+    -- The URL-safe version has these replacements.
+    key := replace(key, '/', '_'); -- url safe replacement
+    key := replace(key, '+', '-'); -- url safe replacement
+
+    -- Concat the generated key (safely quoted) with the generated query
+    -- and run it.
+    -- SELECT id FROM "test" WHERE id='blahblah' INTO found
+    -- Now "found" will be the duplicated id or NULL.
+    EXECUTE qry || quote_literal(key) INTO found;
+
+    -- Check to see if found is NULL.
+    -- If we checked to see if found = NULL it would always be FALSE
+    -- because (NULL = NULL) is always FALSE.
+    IF found IS NULL THEN
+
+      -- If we didn't find a collision then leave the LOOP.
+      EXIT;
+    END IF;
+
+    -- We haven't EXITed yet, so return to the top of the LOOP
+    -- and try again.
+  END LOOP;
+
+  -- NEW and OLD are available in TRIGGER PROCEDURES.
+  -- NEW is the mutated row that will actually be INSERTed.
+  -- We're replacing id, regardless of what it was before
+  -- with our key variable.
+  NEW.id = key;
+
+  -- The RECORD returned here is what will actually be INSERTed,
+  -- or what the next trigger will get if there is one.
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+
+---- end of utils
+
+---- begin of tables
+
 -- table for book info
 drop table if exists books;
 create table books (
@@ -103,10 +173,14 @@ create table collections_articles (
 -- tags
 drop table if exists tags;
 create table tags (
-    id char(8),
-    kind smallint, -- tag type: 0: topic, 1: event, 2: people, 4: place, 5: emotion
+    id char(8) PRIMARY KEY,
+    kind smallint, -- tag type: 0: topic, 1: event, 2: people, 3: place, 4: time, 5: emotion
     tag varchar(200)
 );
+
+DROP TRIGGER if exists trigger_tags_genid on tags;
+CREATE TRIGGER trigger_tags_genid BEFORE INSERT ON tags FOR EACH ROW EXECUTE PROCEDURE gen_unique_id(8);
+
 
 -- news
 drop table if exists news;
@@ -120,6 +194,14 @@ create table news (
     title text,
     summary text,
     content text
+);
+
+-- news_tags relation
+drop table if exists news_tags;
+create table news_tags (
+    newsid char(8),
+    tagid char(8),
+    PRIMARY KEY (newsid, tagid)
 );
 
 
@@ -182,3 +264,4 @@ CREATE OR REPLACE VIEW users_people AS
 -- insert into chapters VALUES ('0001', 1, '00000001', '五帝本纪第一');
 -- insert into chapters VALUES ('0002', 2, '00000001', '夏本纪第二');
 -- insert into chapters VALUES ('0003', 3, '00000001', '殷本纪第三');
+

@@ -294,6 +294,14 @@ func initRouter(config *Config) *gin.Engine {
 		news.POST("/add", ctrl.AddNews)
 	}
 
+	tags := v1.Group("tags")
+	{
+		repo := repositories.NewTagRepo(db)
+		ctrl := controllers.NewTagController(repo)
+
+		tags.GET("/news/list", ctrl.ListNewsTags)
+	}
+
 	user := v1.Group("/user")
 	{
 		repo := repositories.NewUserRepo(db)
