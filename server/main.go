@@ -289,6 +289,7 @@ func initRouter(config *Config) *gin.Engine {
 		ctrl := controllers.NewNewsController(repo)
 
 		news.GET("/list", ctrl.ListNews)
+		news.GET("/get/:newsid", ctrl.GetNews)
 
 		news.Use(authMiddleware.MiddlewareFunc())
 		news.POST("/add", ctrl.AddNews)

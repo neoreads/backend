@@ -51,3 +51,9 @@ func (ctrl *NewsController) ListNews(c *gin.Context) {
 	newsList := ctrl.Repo.ListNews(tagid)
 	c.JSON(http.StatusOK, newsList)
 }
+
+func (ctrl *NewsController) GetNews(c *gin.Context) {
+	newsid := c.Param("newsid")
+	news := ctrl.Repo.GetNews(newsid)
+	c.JSON(http.StatusOK, news)
+}

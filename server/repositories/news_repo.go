@@ -93,3 +93,18 @@ func (r *NewsRepo) ListNews(tagid string) []models.News {
 	*/
 	return news
 }
+
+func (r *NewsRepo) GetNews(newsid string) models.News {
+	var news models.News
+	sql := `select n.*, array_to_json(array_remove(array_agg(row_to_json(t.*)::text), null)::json[]) as tagsjson from news n 
+	left join news_tags nt on n.id = nt.newsid
+	left join tags t on t.id = nt.tagid
+	where n.id = $1
+	group by n.id;`
+	err := r.db.Get(&news, sql, newsid)
+
+	if err != nil {
+		log.Printf("Error listing news: %v\n", err)
+	}
+	return news
+}
