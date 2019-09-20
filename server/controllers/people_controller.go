@@ -35,3 +35,8 @@ func (ctrl *PeopleController) AddPerson(c *gin.Context) {
 	}
 
 }
+
+func (ctrl *PeopleController) ListPeople(c *gin.Context) {
+	people := ctrl.Repo.ListPeople()
+	c.JSON(http.StatusOK, people)
+}

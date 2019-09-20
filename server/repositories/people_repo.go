@@ -26,7 +26,17 @@ func (r *PeopleRepo) AddPerson(person *models.Person) bool {
 		log.Printf("Error inserting person: %#v, with error: %v\n", person, err)
 		return false
 	}
+	rs.Next()
 	rs.Scan(&id)
+	log.Printf("person added:%v\n", id)
 	person.ID = id
 	return true
+}
+
+func (r *PeopleRepo) ListPeople() (people []models.Person) {
+	err := r.DB.Select(&people, "SELECT id, fullname, othernames, intro, avatar from people")
+	if err != nil {
+		log.Printf("Error listing people, with error:%v\n", err)
+	}
+	return people
 }

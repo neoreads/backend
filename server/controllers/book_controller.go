@@ -160,3 +160,11 @@ func (ctrl *BookController) ListMyBooks(c *gin.Context) {
 	books := ctrl.Repo.ListBooksByAuthor(pid)
 	c.JSON(http.StatusOK, books)
 }
+
+func (ctrl *BookController) ListMyCollaborationBooks(c *gin.Context) {
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+
+	books := ctrl.Repo.ListBooksByCollaborator(pid)
+	c.JSON(http.StatusOK, books)
+}

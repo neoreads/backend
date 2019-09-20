@@ -230,6 +230,7 @@ func initRouter(config *Config) *gin.Engine {
 		books.POST("/add", ctrl.AddBook)
 		books.POST("/modify", ctrl.ModifyBook)
 		books.GET("/mine", ctrl.ListMyBooks)
+		books.GET("/my/collaborations", ctrl.ListMyCollaborationBooks)
 		books.GET("/get/:bookid", ctrl.GetBook)
 		books.GET("/remove/:bookid", ctrl.RemoveBook)
 		books.GET("/chapter/get/:bookid/:chapid", ctrl.GetBookChapter)
@@ -309,6 +310,7 @@ func initRouter(config *Config) *gin.Engine {
 		repo := repositories.NewPeopleRepo(db)
 		ctrl := controllers.NewPeopleController(repo)
 
+		people.GET("/list", ctrl.ListPeople)
 		people.Use(authMiddleware.MiddlewareFunc())
 		people.POST("/add", ctrl.AddPerson)
 	}

@@ -85,22 +85,30 @@ create table books (
 drop table if exists people;
 create table people (
     id char(8) PRIMARY KEY,
-    lastname varchar(100), -- last name
-    firstname varchar(100), -- first name
-    fullname varchar(100), -- full name
-    othernames varchar(200),
-    intro text,
-    avatar char(8) -- avatar photo id
+    lastname varchar(100) NOT NULL DEFAULT '', -- last name
+    firstname varchar(100) NOT NULL DEFAULT '', -- first name
+    fullname varchar(100) NOT NULL DEFAULT '', -- full name
+    othernames varchar(200) NOT NULL DEFAULT '',
+    intro text NOT NULL DEFAULT '',
+    avatar char(8) NOT NULL DEFAULT '' -- avatar photo id
 );
 
 DROP TRIGGER if exists trigger_people_genid on people;
 CREATE TRIGGER trigger_people_genid BEFORE INSERT ON people FOR EACH ROW EXECUTE PROCEDURE gen_unique_id(8);
 
 
+-- TODO: rename to books_authors
 drop table if exists books_people;
 create table books_people(
     bookid char(8),
     pid char(8)
+);
+
+drop table if exists books_collaborators;
+create table books_collaborators(
+    bookid char(8) NOT NULL,
+    kind smallint NOT NULL DEFAULT 0, -- kind: 0: initiator; 1: watcher; 2: contributor;
+    pid char(8) NOT NULL
 );
 
 create table chapters (

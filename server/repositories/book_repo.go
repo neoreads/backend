@@ -98,11 +98,30 @@ func (r *BookRepo) AddBook(pid string, book *models.Book) bool {
 		log.Printf("Error adding book %v in repo, with error %v\n", book, err)
 		return false
 	}
-	_, err = tx.Exec("INSERT INTO books_people (bookid, pid) VALUES ($1, $2)", book.ID, pid)
+	if book.Authors != nil && len(book.Authors) > 0 {
+		for i := range book.Authors {
+			author := book.Authors[i]
+			aid := author.ID
+			_, err = tx.Exec("INSERT INTO books_people (bookid, pid) VALUES ($1, $2)", book.ID, aid)
+			if err != nil {
+				log.Printf("Error adding book %v in repo, with error %v\n", book, err)
+				return false
+			}
+		}
+	} else {
+		_, err = tx.Exec("INSERT INTO books_people (bookid, pid) VALUES ($1, $2)", book.ID, pid)
+		if err != nil {
+			log.Printf("Error adding book %v in repo, with error %v\n", book, err)
+			return false
+		}
+	}
+	// add pid to collaborators as initiator
+	_, err = tx.Exec("INSERT INTO books_collaborators (bookid, kind, pid) VALUES ($1, $2, $3)", book.ID, 0, pid)
 	if err != nil {
 		log.Printf("Error adding book %v in repo, with error %v\n", book, err)
 		return false
 	}
+
 	// add toc into chapters
 	// TODO: use batch insert to improve performance
 	log.Printf("Got toc:%#v\n", book.Toc)
@@ -176,11 +195,11 @@ func (r *BookRepo) ModifyChapter(chapter *models.Chapter) bool {
 		log.Printf("Error creating dir for chapter")
 		return false
 	}
-	file :=  path.Join(dir, chapter.ID) + ".md"
+	file := path.Join(dir, chapter.ID) + ".md"
 	f, err := os.Create(file)
 	if err != nil {
 		log.Printf("Error opening file for chapter")
-		return false;
+		return false
 	}
 	defer f.Close()
 	w := bufio.NewWriter(f)
@@ -236,6 +255,18 @@ func (r *BookRepo) ListBooksByAuthor(pid string) []models.Book {
 	err := r.db.Select(&books, "SELECT b.* from books b, books_people p where b.id = p.bookid and p.pid = $1 order by b.title asc", pid)
 	if err != nil {
 		log.Printf("Error listing books for pid %v in repo, with error %v\n", pid, err)
+		return books
+	}
+
+	return books
+}
+
+func (r *BookRepo) ListBooksByCollaborator(pid string) []models.Book {
+	var books []models.Book
+
+	err := r.db.Select(&books, "SELECT b.* from books b, books_collaborators c where b.id = c.bookid and c.pid = $1 order by b.title asc", pid)
+	if err != nil {
+		log.Printf("Error listing books for collaborator with pid %v in repo, with error %v\n", pid, err)
 		return books
 	}
 
