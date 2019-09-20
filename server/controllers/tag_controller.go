@@ -22,3 +22,11 @@ func (ctrl *TagController) ListNewsTags(c *gin.Context) {
 	tags := ctrl.Repo.ListNewsTags(t)
 	c.JSON(http.StatusOK, tags)
 }
+
+func (ctrl *TagController) ListTags(c *gin.Context) {
+	class := c.Query("c")
+	kind := c.Query("k")
+
+	tags := ctrl.Repo.ListTags(class, kind)
+	c.JSON(http.StatusOK, tags)
+}

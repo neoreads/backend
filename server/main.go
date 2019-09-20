@@ -300,7 +300,17 @@ func initRouter(config *Config) *gin.Engine {
 		repo := repositories.NewTagRepo(db)
 		ctrl := controllers.NewTagController(repo)
 
+		tags.GET("/list", ctrl.ListTags)
 		tags.GET("/news/list", ctrl.ListNewsTags)
+	}
+
+	people := v1.Group("people")
+	{
+		repo := repositories.NewPeopleRepo(db)
+		ctrl := controllers.NewPeopleController(repo)
+
+		people.Use(authMiddleware.MiddlewareFunc())
+		people.POST("/add", ctrl.AddPerson)
 	}
 
 	user := v1.Group("/user")

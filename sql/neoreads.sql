@@ -87,8 +87,15 @@ create table people (
     id char(8) PRIMARY KEY,
     lastname varchar(100), -- last name
     firstname varchar(100), -- first name
-    fullname varchar(100) -- full name
+    fullname varchar(100), -- full name
+    othernames varchar(200),
+    intro text,
+    avatar char(8) -- avatar photo id
 );
+
+DROP TRIGGER if exists trigger_people_genid on people;
+CREATE TRIGGER trigger_people_genid BEFORE INSERT ON people FOR EACH ROW EXECUTE PROCEDURE gen_unique_id(8);
+
 
 drop table if exists books_people;
 create table books_people(
@@ -174,7 +181,8 @@ create table collections_articles (
 drop table if exists tags;
 create table tags (
     id char(8) PRIMARY KEY,
-    kind smallint, -- tag type: 0: topic, 1: event, 2: people, 3: place, 4: time, 5: emotion
+    kind smallint NOT NULL DEFAULT 0, -- tag type: 0: topic, 1: event, 2: people, 3: place, 4: time, 5: emotion
+    class smallint NOT NULL DEFAULT 0, -- used for: 0: books, 1: articles, 2: news, 3: people
     tag varchar(200)
 );
 
