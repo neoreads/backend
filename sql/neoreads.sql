@@ -190,7 +190,7 @@ drop table if exists tags;
 create table tags (
     id char(8) PRIMARY KEY,
     kind smallint NOT NULL DEFAULT 0, -- tag type: 0: topic, 1: event, 2: people, 3: place, 4: time, 5: emotion
-    class smallint NOT NULL DEFAULT 0, -- used for: 0: books, 1: articles, 2: news, 3: people
+    role smallint NOT NULL DEFAULT 0, -- used for: 0: books, 1: articles, 2: news, 3: people
     tag varchar(200)
 );
 

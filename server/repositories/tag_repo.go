@@ -38,19 +38,19 @@ func (r *TagRepo) ListNewsTags(t string) []models.Tag {
 	return tags
 }
 
-func (r *TagRepo) ListTags(class string, kind string) []models.Tag {
+func (r *TagRepo) ListTags(role string, kind string) []models.Tag {
 	tags := []models.Tag{}
 
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	q := psql.Select("*").From("tags")
 
-	if class != "" {
-		c, err := strconv.Atoi(class)
+	if role != "" {
+		c, err := strconv.Atoi(role)
 		if err != nil {
-			log.Printf("Error converting parameter class %v to int\n", class)
+			log.Printf("Error converting parameter role %v to int\n", role)
 			return tags
 		}
-		q = q.Where("class = ?", c)
+		q = q.Where("role = ?", c)
 	}
 	if kind != "" {
 		k, err := strconv.Atoi(kind)

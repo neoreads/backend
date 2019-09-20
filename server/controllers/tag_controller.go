@@ -24,9 +24,9 @@ func (ctrl *TagController) ListNewsTags(c *gin.Context) {
 }
 
 func (ctrl *TagController) ListTags(c *gin.Context) {
-	class := c.Query("c")
+	role := c.Query("r")
 	kind := c.Query("k")
 
-	tags := ctrl.Repo.ListTags(class, kind)
+	tags := ctrl.Repo.ListTags(role, kind)
 	c.JSON(http.StatusOK, tags)
 }
