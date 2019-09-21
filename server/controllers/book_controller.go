@@ -168,3 +168,30 @@ func (ctrl *BookController) ListMyCollaborationBooks(c *gin.Context) {
 	books := ctrl.Repo.ListBooksByCollaborator(pid)
 	c.JSON(http.StatusOK, books)
 }
+
+func (ctrl *BookController) ListPublicBooks(c *gin.Context) {
+	lang := c.Query("lang")
+	books := ctrl.Repo.ListPublicBooks(lang)
+	c.JSON(http.StatusOK, books)
+}
+
+func (ctrl *BookController) AddTranslation(c *gin.Context) {
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+	bookid := c.Param("bookid")
+
+	succ := ctrl.Repo.AddTranslation(bookid, pid)
+	if succ {
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "bookid": bookid})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "repo error"})
+	}
+}
+
+func (ctrl *BookController) ListMyTranslationBooks(c *gin.Context) {
+	user, _ := c.Get("jwtuser")
+	pid := user.(*models.User).Pid
+
+	books := ctrl.Repo.ListBooksByTranslator(pid)
+	c.JSON(http.StatusOK, books)
+}

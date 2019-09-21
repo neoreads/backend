@@ -75,6 +75,7 @@ $$ language 'plpgsql';
 drop table if exists books;
 create table books (
     id char(8),
+    lang char(2) NOT NULL DEFAULT 'zh', -- language: en, zh, etc. ISO_639_1; TODO: might need ISO_639_2 in the future;
     title varchar(200),
     cover char(8),
     intro text,
@@ -107,7 +108,7 @@ create table books_people(
 drop table if exists books_collaborators;
 create table books_collaborators(
     bookid char(8) NOT NULL,
-    kind smallint NOT NULL DEFAULT 0, -- kind: 0: initiator; 1: watcher; 2: contributor;
+    kind smallint NOT NULL DEFAULT 0, -- kind: 0: initiator; 1: watcher; 2: contributor; 3: translator
     pid char(8) NOT NULL
 );
 

@@ -272,3 +272,42 @@ func (r *BookRepo) ListBooksByCollaborator(pid string) []models.Book {
 
 	return books
 }
+
+func (r *BookRepo) ListBooksByTranslator(pid string) []models.Book {
+	var books []models.Book
+
+	err := r.db.Select(&books, "SELECT b.* from books b, books_collaborators c where b.id = c.bookid and c.pid = $1 and c.kind = 3 order by b.title asc", pid)
+	if err != nil {
+		log.Printf("Error listing books for collaborator with pid %v in repo, with error %v\n", pid, err)
+		return books
+	}
+
+	return books
+}
+
+func (r *BookRepo) ListPublicBooks(lang string) []models.Book {
+	var books []models.Book
+
+	// TODO: add constraint for public books
+	var err error
+	if lang != "" {
+		err = r.db.Select(&books, "SELECT b.* from books b where lang = $1 order by b.title asc", lang)
+	} else {
+		err = r.db.Select(&books, "SELECT b.* from books b where order by b.title asc")
+	}
+	if err != nil {
+		log.Printf("Error listing public books with lang %v in repo, with error %v\n", lang, err)
+		return books
+	}
+
+	return books
+}
+
+func (r *BookRepo) AddTranslation(bookid string, pid string) bool {
+	_, err := r.db.Exec("INSERT INTO books_collaborators VALUES ($1, $2, $3)", bookid, 3, pid)
+	if err != nil {
+		log.Printf("Error adding translation for book %v and pid %v, with error: %v\n", bookid, pid, err)
+		return false
+	}
+	return true
+}

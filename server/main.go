@@ -225,12 +225,15 @@ func initRouter(config *Config) *gin.Engine {
 		book.GET("/:bookid/chapter/:chapid", ctrl.GetBookChapter)
 
 		books.GET("/hotlist", ctrl.HotList)
+		books.GET("/public", ctrl.ListPublicBooks)
 
 		books.Use(authMiddleware.MiddlewareFunc())
 		books.POST("/add", ctrl.AddBook)
 		books.POST("/modify", ctrl.ModifyBook)
 		books.GET("/mine", ctrl.ListMyBooks)
 		books.GET("/my/collaborations", ctrl.ListMyCollaborationBooks)
+		books.GET("/my/translations/add/:bookid", ctrl.AddTranslation)
+		books.GET("/my/translations/list", ctrl.ListMyTranslationBooks)
 		books.GET("/get/:bookid", ctrl.GetBook)
 		books.GET("/remove/:bookid", ctrl.RemoveBook)
 		books.GET("/chapter/get/:bookid/:chapid", ctrl.GetBookChapter)

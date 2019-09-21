@@ -4,6 +4,7 @@ package models
 type Book struct {
 	ID      string    `json:"id"`
 	Title   string    `json:"title"`
+	Lang    string    `json:"lang"`
 	Intro   string    `json:"intro"`
 	Cover   string    `json:"cover"`
 	Toc     []Chapter `json:"toc"`
