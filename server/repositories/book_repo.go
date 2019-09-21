@@ -25,7 +25,8 @@ func NewBookRepo(db *sqlx.DB, root string) *BookRepo {
 
 // GetBook get book info by bookid
 func (r *BookRepo) GetBook(id string) (book models.Book, found bool) {
-	err := r.db.Get(&book, "SELECT * from books where id=$1", id)
+	sql := "select b.*, array_to_json(array_remove(array_agg(json_strip_nulls(row_to_json(p.*))::text), null)::json[]) as authorsjson from books b, books_people bp, people p where b.id = bp.bookid and bp.pid = p.id and b.id = $1 group by b.id;"
+	err := r.db.Get(&book, sql, id)
 	toc := r.GetTOC(id)
 	book.Toc = toc
 	if err != nil {
@@ -264,7 +265,7 @@ func (r *BookRepo) ListBooksByAuthor(pid string) []models.Book {
 func (r *BookRepo) ListBooksByCollaborator(pid string) []models.Book {
 	var books []models.Book
 
-	err := r.db.Select(&books, "SELECT b.* from books b, books_collaborators c where b.id = c.bookid and c.pid = $1 order by b.title asc", pid)
+	err := r.db.Select(&books, "SELECT b.* from books b, books_collaborators c where b.id = c.bookid and c.pid = $1 and c.kind in (0, 1, 2) order by b.title asc", pid)
 	if err != nil {
 		log.Printf("Error listing books for collaborator with pid %v in repo, with error %v\n", pid, err)
 		return books
