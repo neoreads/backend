@@ -16,6 +16,8 @@ type BookController struct {
 	Repo      *repositories.BookRepo
 	IDGen     *util.N64Generator
 	ChapIDGen *util.N64Generator
+	ParaIDGen *util.N64Generator
+	SentIDGen *util.N64Generator
 }
 
 func NewBookController(r *repositories.BookRepo) *BookController {
@@ -23,6 +25,8 @@ func NewBookController(r *repositories.BookRepo) *BookController {
 		Repo:      r,
 		IDGen:     util.NewN64Generator(8),
 		ChapIDGen: util.NewN64Generator(4),
+		ParaIDGen: util.NewN64Generator(4),
+		SentIDGen: util.NewN64Generator(4),
 	}
 }
 
@@ -134,6 +138,25 @@ func (ctrl *BookController) ModifyBook(c *gin.Context) {
 	}
 }
 
+func (ctrl *BookController) parseChapterContent(content string) string {
+	paras := util.ParseMD(content)
+	sb := strings.Builder{}
+
+	for i := range paras {
+		p := paras[i]
+		sents := p.Sents
+		for j := range sents {
+			sent := sents[j]
+			sb.WriteString(sent.Content)
+			sb.WriteString("{s:" + sent.ID + "}")
+		}
+		sb.WriteString("{p:" + p.ID + "}")
+		sb.WriteString("\n")
+		sb.WriteString("\n")
+	}
+	return sb.String()
+}
+
 func (ctrl *BookController) ModifyChapter(c *gin.Context) {
 	var chapter models.Chapter
 	if err := c.ShouldBindJSON(&chapter); err != nil {
@@ -144,6 +167,11 @@ func (ctrl *BookController) ModifyChapter(c *gin.Context) {
 	// TODO: check if the user is authorized to do this action
 	// user, _ := c.Get("jwtuser")
 	// pid := user.(*models.User).Pid
+
+	// filter chapter content to add para/sent ids
+
+	content := chapter.Content
+	chapter.Content = ctrl.parseChapterContent(content)
 
 	succ := ctrl.Repo.ModifyChapter(&chapter)
 	if succ {
