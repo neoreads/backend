@@ -37,6 +37,9 @@ func (ctrl *NewsController) AddNews(c *gin.Context) {
 	pid := user.(*models.User).Pid
 	post.PID = pid
 
+	// add ids in markdown text
+	post.Content = util.ApplyIDs(post.Content)
+
 	succ := ctrl.Repo.AddNews(&post)
 
 	if succ {

@@ -139,22 +139,7 @@ func (ctrl *BookController) ModifyBook(c *gin.Context) {
 }
 
 func (ctrl *BookController) parseChapterContent(content string) string {
-	paras := util.ParseMD(content)
-	sb := strings.Builder{}
-
-	for i := range paras {
-		p := paras[i]
-		sents := p.Sents
-		for j := range sents {
-			sent := sents[j]
-			sb.WriteString(sent.Content)
-			sb.WriteString("{s:" + sent.ID + "}")
-		}
-		sb.WriteString("{p:" + p.ID + "}")
-		sb.WriteString("\n")
-		sb.WriteString("\n")
-	}
-	return sb.String()
+	return util.ApplyIDs(content)
 }
 
 func (ctrl *BookController) ModifyChapter(c *gin.Context) {

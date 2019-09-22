@@ -28,6 +28,9 @@ func (ctrl *ArticleController) ModifyArticle(c *gin.Context) {
 		return
 	}
 
+	// apply ids to markdown text
+	article.Content = util.ApplyIDs(article.Content)
+
 	// TODO: check if PID from credential is the same as claimed in the post data
 	succ := ctrl.Repo.ModifyArticle(&article)
 
@@ -37,6 +40,7 @@ func (ctrl *ArticleController) ModifyArticle(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "error adding article in repo"})
 	}
 }
+
 func (ctrl *ArticleController) AddArticle(c *gin.Context) {
 	var article models.Article
 	if err := c.ShouldBindJSON(&article); err != nil {
@@ -48,6 +52,9 @@ func (ctrl *ArticleController) AddArticle(c *gin.Context) {
 	article.ID = aid
 	user, _ := c.Get("jwtuser")
 	article.PID = user.(*models.User).Pid
+
+	// apply ids to markdown text
+	article.Content = util.ApplyIDs(article.Content)
 
 	succ := ctrl.Repo.AddArticle(&article)
 
