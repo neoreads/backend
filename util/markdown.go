@@ -111,7 +111,12 @@ func Paras2Text(paras []Para) string {
 		for j := range sents {
 			sent := sents[j]
 			sb.WriteString(sent.Content)
-			sb.WriteString(" [#" + sent.ID + "]")
+			if strings.HasSuffix(sent.Content, " ") {
+				sb.WriteString("[#" + sent.ID + "]")
+
+			} else {
+				sb.WriteString(" [#" + sent.ID + "]")
+			}
 		}
 		if p.ID != "" {
 			sb.WriteString(" {#" + p.ID + "}\n")
