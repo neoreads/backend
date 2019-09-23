@@ -31,7 +31,7 @@ func RegSplit(text string, delimeter string) []string {
 // splitSents Split sentences with Chinese punctuations
 func SplitSents(para string) []string {
 	arr := []string{}
-	split := RegSplit(para, "([。！：？]”?)+|[\\.\\!\\:\\?]( )+(\\[#....\\])?")
+	split := RegSplit(para, "([。！：？]”?)+( )+(\\[#....\\])?|[\\.\\!\\:\\?]( )+(\\[#....\\])?")
 	for i := range split {
 		arr = append(arr, split[i])
 	}
