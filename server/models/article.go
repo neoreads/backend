@@ -10,6 +10,7 @@ type Article struct {
 	Kind    int       `json:"kind"`
 	Title   string    `json:"title"`
 	Content string    `json:"content"`
+	Author  string    `json:"author"`
 }
 
 type ArticleKind int

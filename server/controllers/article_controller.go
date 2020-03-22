@@ -73,6 +73,12 @@ func (ctrl *ArticleController) GetArticle(c *gin.Context) {
 	c.JSON(http.StatusOK, article)
 }
 
+func (ctrl *ArticleController) GetPoem(c *gin.Context) {
+	poemid := c.Param("poemid")
+	article := ctrl.Repo.GetArticle(poemid)
+	c.JSON(http.StatusOK, article)
+}
+
 func (ctrl *ArticleController) ListArticles(c *gin.Context) {
 	user, _ := c.Get("jwtuser")
 	pid := user.(*models.User).Pid

@@ -265,6 +265,8 @@ func initRouter(config *Config) *gin.Engine {
 		repo := repositories.NewArticleRepo(db)
 		ctrl := controllers.NewArticleController(repo)
 		article.GET("/poems/list", ctrl.ListPoems)
+		article.GET("/poems/get/:poemid", ctrl.GetPoem)
+
 		article.Use(authMiddleware.MiddlewareFunc())
 		article.GET("/list", ctrl.ListArticles)
 		article.GET("/get/:artid", ctrl.GetArticle)

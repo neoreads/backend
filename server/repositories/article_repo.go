@@ -63,7 +63,7 @@ func (r *ArticleRepo) ModifyArticle(a *models.Article) bool {
 
 func (r *ArticleRepo) GetArticle(artid string) models.Article {
 	var article models.Article
-	err := r.db.Get(&article, "SELECT a.kind, a.title, a.content, a.id, p.pid from articles a, article_people p where a.id = p.aid and a.id = $1", artid)
+	err := r.db.Get(&article, "SELECT a.kind, a.title, a.content, a.id, ap.pid, p.fullname as author from articles a, article_people ap, people p where a.id = ap.aid and ap.pid = p.id and a.id = $1", artid)
 	if err != nil {
 		log.Printf("error listing articles from db:%v, with err:%v\n", artid, err)
 	}
@@ -72,7 +72,7 @@ func (r *ArticleRepo) GetArticle(artid string) models.Article {
 
 func (r *ArticleRepo) SearchArticles(kind models.ArticleKind) []models.Article {
 	articles := []models.Article{}
-	err := r.db.Select(&articles, "SELECT a.*, p.pid from articles a, article_people p where a.id = p.aid and a.kind = $1 order by a.modtime desc", kind)
+	err := r.db.Select(&articles, "SELECT a.*, ap.pid, p.fullname as author from articles a, article_people ap, people p where a.id = ap.aid and ap.pid = p.id and a.kind = $1 order by a.modtime desc", kind)
 	if err != nil {
 		log.Printf("error searching articles from db:%v, with err:%v\n", kind, err)
 	}

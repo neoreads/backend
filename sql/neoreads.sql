@@ -159,7 +159,8 @@ drop table if exists article_people;
 -- one article may have multiple authors
 create table article_people (
     aid char(8), -- article id
-    pid char(8) -- person id
+    pid char(8), -- person id
+    CONSTRAINT article_people_pk PRIMARY KEY (pid, aid)
 );
 
 -- collections
