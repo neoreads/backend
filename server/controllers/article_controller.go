@@ -50,8 +50,10 @@ func (ctrl *ArticleController) AddArticle(c *gin.Context) {
 
 	aid := ctrl.IDGen.Next()
 	article.ID = aid
-	user, _ := c.Get("jwtuser")
-	article.PID = user.(*models.User).Pid
+	if article.PID == "" {
+		user, _ := c.Get("jwtuser")
+		article.PID = user.(*models.User).Pid
+	}
 
 	// apply ids to markdown text
 	article.Content = util.ApplyIDs(article.Content)
@@ -94,4 +96,10 @@ func (ctrl *ArticleController) RemoveArticle(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "error removing article in repo"})
 	}
+}
+
+func (ctrl *ArticleController) ListPoems(c *gin.Context) {
+	kind := models.PeomKind
+	articles := ctrl.Repo.SearchArticles(kind)
+	c.JSON(http.StatusOK, articles)
 }

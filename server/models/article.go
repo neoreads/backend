@@ -7,6 +7,16 @@ type Article struct {
 	PID     string    `json:"pid"`
 	AddTime time.Time `json:"addtime"`
 	ModTime time.Time `json:"modtime"`
+	Kind    int       `json:"kind"`
 	Title   string    `json:"title"`
 	Content string    `json:"content"`
 }
+
+type ArticleKind int
+
+const (
+	ChapterKind ArticleKind = iota
+	BlogKind
+	PeomKind
+	EmarkKind
+)

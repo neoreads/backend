@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/appleboy/gin-jwt"
+	jwt "github.com/appleboy/gin-jwt/v2"
 
 	"github.com/spf13/viper"
 
@@ -261,10 +261,11 @@ func initRouter(config *Config) *gin.Engine {
 	}
 
 	article := v1.Group("articles")
-	article.Use(authMiddleware.MiddlewareFunc())
 	{
 		repo := repositories.NewArticleRepo(db)
 		ctrl := controllers.NewArticleController(repo)
+		article.GET("/poems/list", ctrl.ListPoems)
+		article.Use(authMiddleware.MiddlewareFunc())
 		article.GET("/list", ctrl.ListArticles)
 		article.GET("/get/:artid", ctrl.GetArticle)
 		article.GET("/remove/:artid", ctrl.RemoveArticle)

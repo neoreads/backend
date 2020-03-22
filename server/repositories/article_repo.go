@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"log"
+	"strings"
 
 	"github.com/lib/pq"
 
@@ -21,24 +22,38 @@ func NewArticleRepo(db *sqlx.DB) *ArticleRepo {
 }
 
 func (r *ArticleRepo) AddArticle(a *models.Article) bool {
-	_, err := r.db.NamedExec("INSERT INTO articles (id, title, content)"+
-		" VALUES (:id, :title, :content)", a)
+	_, err := r.db.NamedExec("INSERT INTO articles (id, kind, title, content)"+
+		" VALUES (:id, :kind, :title, :content)", a)
 	if err != nil {
 		log.Printf("error adding article:%v, with err: %v\n", a, err)
 		return false
 	}
 
-	_, err = r.db.Exec("INSERT INTO article_people (aid, pid) VALUES ($1, $2)", a.ID, a.PID)
-	if err != nil {
-		log.Printf("error adding article:%v, with err: %v\n", a, err)
-		return false
+	pids := a.PID
+	if strings.Contains(pids, ",") {
+		pidarr := strings.Split(pids, ",")
+		for i := range pidarr {
+			pid := pidarr[i]
+			_, err = r.db.Exec("INSERT INTO article_people (aid, pid) VALUES ($1, $2)", a.ID, pid)
+			if err != nil {
+				log.Printf("error adding article:%v, with err: %v\n", a, err)
+				return false
+			}
+		}
+
+	} else {
+		_, err = r.db.Exec("INSERT INTO article_people (aid, pid) VALUES ($1, $2)", a.ID, a.PID)
+		if err != nil {
+			log.Printf("error adding article:%v, with err: %v\n", a, err)
+			return false
+		}
 	}
 	return true
 }
 
 func (r *ArticleRepo) ModifyArticle(a *models.Article) bool {
 	// TODO: add support for modTime
-	_, err := r.db.NamedExec("UPDATE articles set title = :title, content = :content, modtime = now() where id = :id", a)
+	_, err := r.db.NamedExec("UPDATE articles set kind = :kind, title = :title, content = :content, modtime = now() where id = :id", a)
 	if err != nil {
 		log.Printf("error modifying article:%v, with err: %v\n", a, err)
 		return false
@@ -48,11 +63,20 @@ func (r *ArticleRepo) ModifyArticle(a *models.Article) bool {
 
 func (r *ArticleRepo) GetArticle(artid string) models.Article {
 	var article models.Article
-	err := r.db.Get(&article, "SELECT a.title, a.content, a.id, p.pid from articles a, article_people p where a.id = p.aid and a.id = $1", artid)
+	err := r.db.Get(&article, "SELECT a.kind, a.title, a.content, a.id, p.pid from articles a, article_people p where a.id = p.aid and a.id = $1", artid)
 	if err != nil {
 		log.Printf("error listing articles from db:%v, with err:%v\n", artid, err)
 	}
 	return article
+}
+
+func (r *ArticleRepo) SearchArticles(kind models.ArticleKind) []models.Article {
+	articles := []models.Article{}
+	err := r.db.Select(&articles, "SELECT a.*, p.pid from articles a, article_people p where a.id = p.aid and a.kind = $1 order by a.modtime desc", kind)
+	if err != nil {
+		log.Printf("error searching articles from db:%v, with err:%v\n", kind, err)
+	}
+	return articles
 }
 
 func (r *ArticleRepo) ListArticles(pid string) []models.Article {

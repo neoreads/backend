@@ -148,6 +148,7 @@ create table comments (
 drop table if exists articles;
 create table articles (
     id char(8) PRIMARY KEY,
+    kind smallint NOT NULL DEFAULT 0, -- article type: 0: chapter, 1: blog, 2: poem, 3: emark 
     addtime timestamp NOT NULL DEFAULT NOW(),
     modtime timestamp NOT NULL DEFAULT NOW(),
     title varchar(255) NOT NULL,
@@ -165,6 +166,7 @@ create table article_people (
 drop table if exists collections;
 create table collections (
     id char(8) PRIMARY KEY,
+    kind smallint NOT NULL DEFAULT 0, -- collection type: 0: book, 1: collection
     addtime timestamp NOT NULL DEFAULT NOW(),
     modtime timestamp NOT NULL DEFAULT NOW(),
     title varchar(255) NOT NULL,
