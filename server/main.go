@@ -241,15 +241,16 @@ func initRouter(config *Config) *gin.Engine {
 	}
 
 	note := v1.Group("/note")
-	note.Use(authMiddleware.MiddlewareFunc())
 	{
 		repo := repositories.NewNoteRepo(db)
 		ctrl := controllers.NewNoteController(repo)
 
+		note.GET("/list/all", ctrl.ListAllNotes)
+		note.Use(authMiddleware.MiddlewareFunc())
 		note.POST("/add", ctrl.AddNote)
 		note.POST("/modify", ctrl.ModifyNote)
 		note.GET("/remove/:noteid", ctrl.RemoveNote)
-		note.GET("/list", ctrl.ListNotes)
+		note.GET("/list/mine", ctrl.ListMyNotesForBook)
 	}
 
 	reviews := v1.Group("/reviews")

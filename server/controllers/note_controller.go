@@ -37,8 +37,11 @@ func (ctrl *NoteController) AddNote(c *gin.Context) {
 	user, _ := c.Get("jwtuser")
 	note.PID = user.(*models.User).Pid
 	log.Printf("Note to Add: %v\n", note)
-	ctrl.Repo.AddNote(&note)
-	c.JSON(http.StatusOK, gin.H{"status": "ok", "id": noteid})
+	if succ := ctrl.Repo.AddNote(&note); succ {
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "id": noteid})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "id": noteid})
+	}
 }
 
 func (ctrl *NoteController) ModifyNote(c *gin.Context) {
@@ -60,11 +63,18 @@ func (ctrl *NoteController) RemoveNote(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-func (ctrl *NoteController) ListNotes(c *gin.Context) {
+func (ctrl *NoteController) ListMyNotesForBook(c *gin.Context) {
 	user, _ := c.Get("jwtuser")
 	pid := user.(*models.User).Pid
-	bookid := c.Query("bookid")
-	chapid := c.Query("chapid")
-	notes := ctrl.Repo.ListNotes(pid, bookid, chapid)
+	colid := c.Query("bookid")
+	artid := c.Query("chapid")
+	notes := ctrl.Repo.ListNotesForPid(pid, colid, artid)
+	c.JSON(http.StatusOK, notes)
+}
+
+func (ctrl *NoteController) ListAllNotes(c *gin.Context) {
+	colid := c.Query("colid")
+	artid := c.Query("artid")
+	notes := ctrl.Repo.ListNotes(colid, artid)
 	c.JSON(http.StatusOK, notes)
 }

@@ -128,11 +128,12 @@ create table notes (
     ntype smallint, -- note type: 0: mark; 1: note; 2: annotation; 3: comment; 4: reference;  5: dict;
     ptype smallint, -- position type: 0: word; 1: sentence; 2: paragraph; 3: chapter; 4: book;
     pid char(8), -- person id, refers to table people
-    bookid char(8),
-    chapid char(4),
+    colid char(8),
+    artid char(8),
     paraid char(4),
     sentid char(4),
-    wordid char(4), -- TODO: this pos may change to startOffset & endOffset
+    startpos smallint DEFAULT 0,
+    endpos smallint DEFAULT 0,
     content text DEFAULT '', -- for simple notes, this is markdown content; for complex notes like dictionary, this field is empty, and out reference table is required
     CONSTRAINT notes_key PRIMARY KEY (id)
 );
@@ -275,6 +276,24 @@ CREATE OR REPLACE VIEW users_people AS
   WHERE u.pid = p.id;
 
 
+-- stars --
+
+-- 用来记录每人每日每个类型剩余可用的喜爱值
+drop table if exists stars_quota;
+create table stars_quota (
+    kind smallint not null default 0, -- kind: 0:chapter, 1:blog, 2:poem, 3: emark
+    userid int,
+    remaining smallint
+);
+
+-- 用来记录每人每个实体的总喜爱值
+drop table if exists stars;
+create table stars (
+    kind smallint not null default 0, -- kind: 0:chapter, 1:blog, 2:poem, 3: emark
+    uid int,
+    eid varchar(20),
+    num smallint
+);
 
 -- test data ---
 
