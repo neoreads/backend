@@ -246,6 +246,7 @@ func initRouter(config *Config) *gin.Engine {
 		ctrl := controllers.NewNoteController(repo)
 
 		note.GET("/list/all", ctrl.ListAllNotes)
+		note.GET("/list/cards", ctrl.ListNoteCards)
 		note.Use(authMiddleware.MiddlewareFunc())
 		note.POST("/add", ctrl.AddNote)
 		note.POST("/modify", ctrl.ModifyNote)

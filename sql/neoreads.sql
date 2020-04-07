@@ -126,7 +126,7 @@ create table notes (
     id char(8),
     "time" timestamp NOT NULL DEFAULT NOW(),
     ntype smallint, -- note type: 0: mark; 1: note; 2: annotation; 3: comment; 4: reference;  5: dict;
-    ptype smallint, -- position type: 0: word; 1: sentence; 2: paragraph; 3: chapter; 4: book;
+    ptype smallint, -- position type: 0: word; 1: sentence; 2: paragraph; 3: article; 4: collection;
     pid char(8), -- person id, refers to table people
     colid char(8),
     artid char(8),

@@ -7,8 +7,8 @@ import (
 type Note struct {
 	ID       string    `json:"id"`
 	Time     time.Time `json:"time"`
-	NType    int       `json:"ntype"`
-	PType    int       `json:"ptype"`
+	NType    int       `json:"ntype"` // Note Type
+	PType    int       `json:"ptype"` // Position Type
 	PID      string    `json:"pid"`
 	ColID    string    `json:"colid"`
 	ArtID    string    `json:"artid"`
@@ -17,4 +17,10 @@ type Note struct {
 	StartPos int       `json:"startpos"`
 	EndPos   int       `json:"endpos"`
 	Content  string    `json:"content"`
+}
+
+type NoteCard struct {
+	Note
+
+	PName string `json:"pname"` // Person Name
 }

@@ -78,3 +78,10 @@ func (ctrl *NoteController) ListAllNotes(c *gin.Context) {
 	notes := ctrl.Repo.ListNotes(colid, artid)
 	c.JSON(http.StatusOK, notes)
 }
+
+func (ctrl *NoteController) ListNoteCards(c *gin.Context) {
+	colid := c.Query("colid")
+	artid := c.Query("artid")
+	cards := ctrl.Repo.ListNoteCards(colid, artid)
+	c.JSON(http.StatusOK, cards)
+}

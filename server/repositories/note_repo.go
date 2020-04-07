@@ -59,3 +59,12 @@ func (r *NoteRepo) ListNotes(colid string, artid string) []models.Note {
 	}
 	return notes
 }
+
+func (r *NoteRepo) ListNoteCards(colid string, artid string) []models.NoteCard {
+	cards := []models.NoteCard{}
+	err := r.db.Select(&cards, "SELECT n.*, p.fullname as pname from notes n, people p where n.pid = p.id and n.colid = $1 and n.artid = $2", colid, artid)
+	if err != nil {
+		log.Printf("error listing notes from db:%v, with err:%v\n", colid+":"+artid, err)
+	}
+	return cards
+}
