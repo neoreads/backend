@@ -125,7 +125,7 @@ drop table if exists notes;
 create table notes (
     id char(8),
     "time" timestamp NOT NULL DEFAULT NOW(),
-    ntype smallint, -- note type: 0: mark; 1: note; 2: annotation; 3: comment; 4: reference;  5: dict;
+    ntype smallint, -- note type: 0: mark; 1: note; 2: phonetics; 3: reference;  4: translation;
     ptype smallint, -- position type: 0: word; 1: sentence; 2: paragraph; 3: article; 4: collection;
     pid char(8), -- person id, refers to table people
     colid char(8),
@@ -195,7 +195,7 @@ drop table if exists tags;
 create table tags (
     id char(8) PRIMARY KEY,
     kind smallint NOT NULL DEFAULT 0, -- tag type: 0: topic, 1: event, 2: people, 3: place, 4: time, 5: emotion
-    role smallint NOT NULL DEFAULT 0, -- used for: 0: books, 1: articles, 2: news, 3: people
+    role smallint NOT NULL DEFAULT 0, -- used for: 0: books, 1: articles, 2: news, 3: people, 4: notes
     tag varchar(200)
 );
 
