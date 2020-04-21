@@ -70,11 +70,18 @@ func (r *ArticleRepo) GetArticle(artid string) models.Article {
 	return article
 }
 
-func (r *ArticleRepo) SearchArticles(kind models.ArticleKind) []models.Article {
+func (r *ArticleRepo) SearchArticles(kind models.ArticleKind, pid string) []models.Article {
 	articles := []models.Article{}
-	err := r.db.Select(&articles, "SELECT a.*, ap.pid, p.fullname as author from articles a, article_people ap, people p where a.id = ap.aid and ap.pid = p.id and a.kind = $1 order by a.modtime desc", kind)
-	if err != nil {
-		log.Printf("error searching articles from db:%v, with err:%v\n", kind, err)
+	if pid != "" {
+		err := r.db.Select(&articles, "SELECT a.*, ap.pid, p.fullname as author from articles a, article_people ap, people p where a.id = ap.aid and ap.pid = p.id and a.kind = $1 and ap.pid = $2 order by a.modtime desc", kind, pid)
+		if err != nil {
+			log.Printf("error searching articles from db:%v:%v, with err:%v\n", kind, pid, err)
+		}
+	} else {
+		err := r.db.Select(&articles, "SELECT a.*, ap.pid, p.fullname as author from articles a, article_people ap, people p where a.id = ap.aid and ap.pid = p.id and a.kind = $1 order by a.modtime desc", kind)
+		if err != nil {
+			log.Printf("error searching articles from db:%v, with err:%v\n", kind, err)
+		}
 	}
 	return articles
 }

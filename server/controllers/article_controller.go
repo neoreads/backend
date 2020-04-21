@@ -106,6 +106,13 @@ func (ctrl *ArticleController) RemoveArticle(c *gin.Context) {
 
 func (ctrl *ArticleController) ListPoems(c *gin.Context) {
 	kind := models.PeomKind
-	articles := ctrl.Repo.SearchArticles(kind)
+	articles := ctrl.Repo.SearchArticles(kind, "")
+	c.JSON(http.StatusOK, articles)
+}
+
+func (ctrl *ArticleController) SearchPoems(c *gin.Context) {
+	pid := c.Query("pid")
+	kind := models.PeomKind
+	articles := ctrl.Repo.SearchArticles(kind, pid)
 	c.JSON(http.StatusOK, articles)
 }
