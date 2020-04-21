@@ -203,6 +203,13 @@ DROP TRIGGER if exists trigger_tags_genid on tags;
 CREATE TRIGGER trigger_tags_genid BEFORE INSERT ON tags FOR EACH ROW EXECUTE PROCEDURE gen_unique_id(8);
 
 
+drop table if exists people_tags;
+create table people_tags (
+    pid char(8),
+    tid char(8),
+    CONSTRAINT people_tags_pk PRIMARY KEY (pid, tid)
+);
+
 -- news
 drop table if exists news;
 create table news (

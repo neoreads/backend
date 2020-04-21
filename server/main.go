@@ -319,8 +319,11 @@ func initRouter(config *Config) *gin.Engine {
 		ctrl := controllers.NewPeopleController(repo)
 
 		people.GET("/list", ctrl.ListPeople)
+		people.GET("/get/:pid", ctrl.GetPerson)
+		people.GET("/hotauthors", ctrl.HotAuthors)
 		people.Use(authMiddleware.MiddlewareFunc())
 		people.POST("/add", ctrl.AddPerson)
+		people.POST("/modify", ctrl.ModifyPerson)
 	}
 
 	user := v1.Group("/user")

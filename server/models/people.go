@@ -7,3 +7,8 @@ type Person struct {
 	OtherNames string `json:"othernames,omitempty"`
 	Avatar     string `json:"avatar,omitempty"`
 }
+
+type PersonForm struct {
+	Person
+	Tags []Tag `json:"tags,omitempty"`
+}
