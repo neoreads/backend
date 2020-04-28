@@ -249,9 +249,11 @@ func initRouter(config *Config) *gin.Engine {
 		note.GET("/list/cards", ctrl.ListNoteCards)
 		note.Use(authMiddleware.MiddlewareFunc())
 		note.POST("/add", ctrl.AddNote)
+		note.POST("/star", ctrl.Star)
 		note.POST("/modify", ctrl.ModifyNote)
 		note.GET("/remove/:noteid", ctrl.RemoveNote)
 		note.GET("/list/mine", ctrl.ListMyNotesForBook)
+		note.POST("/mystars/article", ctrl.ListMyStarsForArticle)
 	}
 
 	reviews := v1.Group("/reviews")
@@ -271,6 +273,7 @@ func initRouter(config *Config) *gin.Engine {
 		article.GET("/poems/get/:poemid", ctrl.GetPoem)
 
 		article.Use(authMiddleware.MiddlewareFunc())
+		article.GET("/poems/fav", ctrl.SearchFavPoems)
 		article.GET("/list", ctrl.ListArticles)
 		article.GET("/get/:artid", ctrl.GetArticle)
 		article.GET("/remove/:artid", ctrl.RemoveArticle)

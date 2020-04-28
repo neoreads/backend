@@ -17,6 +17,7 @@ type Note struct {
 	StartPos int       `json:"startpos"`
 	EndPos   int       `json:"endpos"`
 	Content  string    `json:"content"`
+	Value    int       `json:"value"`
 }
 
 type NoteCard struct {

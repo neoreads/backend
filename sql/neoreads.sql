@@ -125,7 +125,7 @@ drop table if exists notes;
 create table notes (
     id char(8),
     "time" timestamp NOT NULL DEFAULT NOW(),
-    ntype smallint, -- note type: 0: mark; 1: note; 2: phonetics; 3: reference;  4: translation;
+    ntype smallint, -- note type: 0: mark/star; 1: note; 2: phonetics; 3: reference;  4: translation;
     ptype smallint, -- position type: 0: word; 1: sentence; 2: paragraph; 3: article; 4: collection;
     pid char(8), -- person id, refers to table people
     colid char(8),
@@ -135,6 +135,7 @@ create table notes (
     startpos smallint DEFAULT 0,
     endpos smallint DEFAULT 0,
     content text DEFAULT '', -- for simple notes, this is markdown content; for complex notes like dictionary, this field is empty, and out reference table is required
+    value integer DEFAULT 0, -- 用于数值型的笔记，比如星级等。
     CONSTRAINT notes_key PRIMARY KEY (id)
 );
 

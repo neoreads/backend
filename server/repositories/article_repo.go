@@ -86,6 +86,26 @@ func (r *ArticleRepo) SearchArticles(kind models.ArticleKind, pid string) []mode
 	return articles
 }
 
+// TODO: 把SearchArticles 和 SearchFavArticles 合并起来
+// TODO: 找一个QueryBuilder替代直接拼凑SQL语句的方案
+func (r *ArticleRepo) SearchFavArticles(kind models.ArticleKind, mypid string, pid string) []models.Article {
+	// note.ptype 是positionType, ptype = 3 表示文章级别的笔记；
+	// note.ntype 是noteType.  ntype = 0 表示是这个笔记的类型是“收藏”。
+	articles := []models.Article{}
+	if pid != "" {
+		err := r.db.Select(&articles, "SELECT a.*, ap.pid, p.fullname as author from articles a, notes n, article_people ap, people p where n.artid = a.id and n.ptype = 3 and n.ntype = 0 and a.id = ap.aid and ap.pid = p.id and a.kind = $1 and ap.pid = $2 order by a.modtime desc", kind, pid)
+		if err != nil {
+			log.Printf("error searching articles from db:%v:%v, with err:%v\n", kind, pid, err)
+		}
+	} else {
+		err := r.db.Select(&articles, "SELECT a.*, ap.pid, p.fullname as author from articles a, notes n, article_people ap, people p where n.artid = a.id and n.ptype = 3 and n.ntype = 0 and a.id = ap.aid and ap.pid = p.id and a.kind = $1 order by a.modtime desc", kind)
+		if err != nil {
+			log.Printf("error searching articles from db:%v, with err:%v\n", kind, err)
+		}
+	}
+	return articles
+}
+
 func (r *ArticleRepo) ListArticles(pid string) []models.Article {
 	articles := []models.Article{}
 	err := r.db.Select(&articles, "SELECT a.*, p.pid from articles a, article_people p where a.id = p.aid and p.pid = $1 order by a.modtime desc", pid)

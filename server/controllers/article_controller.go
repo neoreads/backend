@@ -116,3 +116,12 @@ func (ctrl *ArticleController) SearchPoems(c *gin.Context) {
 	articles := ctrl.Repo.SearchArticles(kind, pid)
 	c.JSON(http.StatusOK, articles)
 }
+
+func (ctrl *ArticleController) SearchFavPoems(c *gin.Context) {
+	user, _ := c.Get("jwtuser")
+	mypid := user.(*models.User).Pid
+	pid := c.Query("pid")
+	kind := models.PeomKind
+	articles := ctrl.Repo.SearchFavArticles(kind, mypid, pid)
+	c.JSON(http.StatusOK, articles)
+}
