@@ -134,6 +134,9 @@ func (ctrl *NoteController) ListAllNotes(c *gin.Context) {
 
 func (ctrl *NoteController) ListNoteCards(c *gin.Context) {
 	colid := c.Query("colid")
+	if colid == "" {
+		colid = "      "
+	}
 	artid := c.Query("artid")
 	cards := ctrl.Repo.ListNoteCards(colid, artid)
 	c.JSON(http.StatusOK, cards)

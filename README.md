@@ -9,6 +9,9 @@ NeoReads应用的后台程序：
 
 ## 近期计划 | TODO
 
+
+- [ ] 利用[go-git](https://github.com/go-git/go-git)来构建git库操作逻辑，实现文集的版本管理
+- [ ] 参考[gogs](https://github.com/gogs/gogs)开源工程，实现文集版本管理，以及协同编辑的功能。
 - [x] 在码云上设立代码库
 - [x] 对史记文件进行预处理，生成章节文件。
 - [x] 生成BookID, ChapID, ParaID和SentID，并写入到章节文件中。（可以和预处理过程结合到一起，直接生成带ID的章节文件。

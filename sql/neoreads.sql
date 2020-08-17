@@ -130,6 +130,7 @@ create table notes (
     pid char(8), -- person id, refers to table people
     colid char(8),
     artid char(8),
+    lineid char(4), -- 行ID，对应markdown文件里的一行，将来替代paraid+sentid的组合，实现非侵入式的ID记录。
     paraid char(4),
     sentid char(4),
     startpos smallint DEFAULT 0,
@@ -137,6 +138,16 @@ create table notes (
     content text DEFAULT '', -- for simple notes, this is markdown content; for complex notes like dictionary, this field is empty, and out reference table is required
     value integer DEFAULT 0, -- 用于数值型的笔记，比如星级等。
     CONSTRAINT notes_key PRIMARY KEY (id)
+);
+
+-- 行ID与行号的对应表。用于在不同版本上查询某一行的ID。
+drop table if exists lineid_linenum;
+create table lineid_linenum (
+    colid char(8), 
+    artid char(8),
+    ver char(8),
+    linenum integer,
+    lineid char(4)
 );
 
 -- comment

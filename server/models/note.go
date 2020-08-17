@@ -14,6 +14,8 @@ type Note struct {
 	ArtID    string    `json:"artid"`
 	ParaID   string    `json:"paraid"`
 	SentID   string    `json:"sentid"`
+	LineID   string    `json:"lineid"`
+	LineNum  int       `json:"linenum"`
 	StartPos int       `json:"startpos"`
 	EndPos   int       `json:"endpos"`
 	Content  string    `json:"content"`

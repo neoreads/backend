@@ -5,22 +5,44 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/neoreads/backend/server/models"
+	"github.com/neoreads/backend/util"
 )
 
 // NoteRepo all kinds of notes
 type NoteRepo struct {
-	db *sqlx.DB
+	db        *sqlx.DB
+	LineIDGen *util.N64Generator
 }
 
 func NewNoteRepo(db *sqlx.DB) *NoteRepo {
-	return &NoteRepo{db: db}
+	return &NoteRepo{db: db, LineIDGen: util.NewN64Generator(4)}
 }
 
 func (r *NoteRepo) AddNote(n *models.Note) bool {
-	_, err := r.db.NamedExec("INSERT INTO notes (id, ntype, ptype, pid, colid, artid, paraid, sentid, startpos, endpos, content, value)"+
-		" VALUES (:id, :ntype, :ptype, :pid, :colid, :artid, :paraid, :sentid, :startpos, :endpos, :content, :value)", n)
+	// 如果是新的位置，需要给当前行添加行ID。
+	log.Printf("lineID for current note: %s\n", n.LineID)
+	if n.LineID == "" {
+		log.Printf("generating new line id")
+		r.GenLineID(n)
+	}
+
+	// 如果是现成位置，直接利用现行ID
+	_, err := r.db.NamedExec("INSERT INTO notes (id, ntype, ptype, pid, colid, artid, lineid, startpos, endpos, content, value)"+
+		" VALUES (:id, :ntype, :ptype, :pid, :colid, :artid, :lineid, :startpos, :endpos, :content, :value)", n)
 	if err != nil {
 		log.Printf("error adding note:%v, with err: %v\n", n, err)
+		return false
+	}
+	return true
+}
+
+func (r *NoteRepo) GenLineID(n *models.Note) bool {
+	lid := r.LineIDGen.Next()
+	n.LineID = lid
+
+	_, err := r.db.Exec("INSERT INTO lineid_linenum (colid, artid, linenum, lineid) VALUES ($1, $2, $3, $4)", n.ColID, n.ArtID, n.LineNum, n.LineID)
+	if err != nil {
+		log.Printf("error generating lineid:%v, with err: %v\n", n, err)
 		return false
 	}
 	return true
