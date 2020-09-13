@@ -10,6 +10,7 @@ NeoReads应用的后台程序：
 ## 近期计划 | TODO
 
 
+- [ ] 用目录(folder)和文件(file)的概念来重新封装各类文章与文集，并组织成多层树状结构，将来统一所有类型的知识信息。
 - [ ] 利用[go-git](https://github.com/go-git/go-git)来构建git库操作逻辑，实现文集的版本管理
 - [ ] 参考[gogs](https://github.com/gogs/gogs)开源工程，实现文集版本管理，以及协同编辑的功能。
 - [x] 在码云上设立代码库

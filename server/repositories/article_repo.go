@@ -87,7 +87,7 @@ func (r *ArticleRepo) SearchArticles(kind models.ArticleKind, pid string) []mode
 }
 
 // TODO: 把SearchArticles 和 SearchFavArticles 合并起来
-// TODO: 找一个QueryBuilder替代直接拼凑SQL语句的方案
+// TODO: 找一个QueryBuilder替代直接拼凑SQL语句的方案，或者自己写一个查询组装器
 func (r *ArticleRepo) SearchFavArticles(kind models.ArticleKind, mypid string, pid string) []models.Article {
 	// note.ptype 是positionType, ptype = 3 表示文章级别的笔记；
 	// note.ntype 是noteType.  ntype = 0 表示是这个笔记的类型是“收藏”。
